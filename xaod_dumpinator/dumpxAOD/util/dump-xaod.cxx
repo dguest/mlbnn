@@ -1,3 +1,5 @@
+// EDM things
+#include "xAODJet/JetContainer.h"
 
 // AnalysisBase tool include(s):
 #include "xAODRootAccess/Init.h"
@@ -12,12 +14,14 @@
 #include <string>
 #include <iostream>
 #include <memory>
+#include <cassert>
 
 int main (int argc, char *argv[])
 {
 
   // set up xAOD basics
-  xAOD::Init();
+  xAOD::TReturnCode::enableFailure();
+  assert(xAOD::Init().isSuccess());
   xAOD::TEvent event(xAOD::TEvent::kClassAccess);
 
   // Loop over the specified files:
@@ -31,50 +35,26 @@ int main (int argc, char *argv[])
     }
     std::cout << "Opened file: " << file_name << std::endl;
 
+    // Connect the event object to it:
+    assert(event.readFrom(ifile.get()).isSuccess());
+
     // Loop over its events:
     const unsigned long long entries = event.getEntries();
     for (unsigned long long entry = 0; entry < entries; ++entry) {
 
       // Load the event:
-      if (event.getEntry(entry) < 0) {
-        throw std::logic_error(
-          "Couldn't load entry " + std::to_string(entry) + " from file: "
-          + file_name);
-      }
+      assert(event.getEntry(entry) >= 0);
 
       // Print some status:
       if ( ! (entry % 500)) {
         std::cout << "Processing " << entry << "/" << entries << "\n";
       }
-      // const xAOD::JetContainer *raw_jets = 0;
-      // auto full_collection = jet_collection + "Jets";
-      // RETURN_CHECK( APP_NAME, event.retrieve(raw_jets, full_collection) );
+      const xAOD::JetContainer *jets = 0;
+      assert(event.retrieve(jets, "AntiKt4EMTopoJets").isSuccess());
 
-      // for (const xAOD::Jet *raw_jet : *raw_jets) {
-      //   std::unique_ptr<xAOD::Jet> jet(nullptr);
-      //   xAOD::Jet* jet_ptr(nullptr);
-      //   calib_tool.calibratedCopy(*raw_jet, jet_ptr);
-      //   jet.reset(jet_ptr);
-      //   if (jet->pt() < 250*GeV || std::abs(jet->eta()) > 2.0) {
-      //     continue;
-      //   }
-      //   if (tagger.isInitialized()) tagger->decorate(*jet);
-
-      //   // get the subjets
-      //   const xAOD::Jet* parent_jet = *acc_parent(*jet);
-      //   if (!parent_jet) throw std::logic_error("no valid parent");
-      //   auto subjet_links = acc_subjets(*parent_jet);
-      //   std::vector<const xAOD::Jet*> subjets;
-      //   for (const auto& el: subjet_links) {
-      //     const auto* jet = dynamic_cast<const xAOD::Jet*>(*el);
-      //     if (!jet) throw std::logic_error("subjet is invalid");
-      //     if (jet->pt() > 7e3) {
-      //       subjets.push_back(jet);
-      //     }
-      //   }
-      //   std::sort(subjets.begin(), subjets.end(), pt_sort);
-
-      // } // end jet loop
+      for (const xAOD::Jet *jet : *jets) {
+        std::cout << jet->pt() << std::endl;
+      }
 
     } // end event loop
   } // end file loop

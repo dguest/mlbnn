@@ -52,6 +52,19 @@ Matt doesn't want to see an example of how to train neural networks in CommonxAO
 
 Since xAODs are the only universal API that ATLAS has for data, Matt is going to dump directly from that. First we'll grab a simulated sample to work with.
 
+```
+rucio get --nrandom 1 mc16_13TeV.410470.PhPy8EG_A14_ttbar_hdamp258p75_nonallhad.deriv.DAOD_FTAG2.e6337_e5984_s3126_r9781_r9778_p3415/
+```
+
+Or for the truly lazy
+
+```
+cd xaod_dumpinator
+./get-dataset.sh
+```
+
+now Matt needs to build the dumping tool.
+
 Part 2: Training
 ================
 
