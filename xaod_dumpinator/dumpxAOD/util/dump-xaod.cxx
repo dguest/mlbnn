@@ -1,13 +1,17 @@
 // EDM things
 #include "xAODJet/JetContainer.h"
 
+// local tools
+#include "JetWriter.h"
+
 // AnalysisBase tool include(s):
 #include "xAODRootAccess/Init.h"
 #include "xAODRootAccess/TEvent.h"
 #include "xAODRootAccess/tools/ReturnCheck.h"
 
-// root includes
+// 3rd party includes
 #include "TFile.h"
+#include "H5Cpp.h"
 
 // stl includes
 #include <stdexcept>
@@ -23,6 +27,10 @@ int main (int argc, char *argv[])
   xAOD::TReturnCode::enableFailure();
   assert(xAOD::Init().isSuccess());
   xAOD::TEvent event(xAOD::TEvent::kClassAccess);
+
+  // set up output file
+  H5::H5File output("output.h5", H5F_ACC_TRUNC);
+  JetWriter jet_writer(output);
 
   // Loop over the specified files:
   for (int file_n = 1; file_n < argc; ++file_n) {
@@ -40,20 +48,21 @@ int main (int argc, char *argv[])
 
     // Loop over its events:
     const unsigned long long entries = event.getEntries();
+    std::cout << "got " << entries << " entries" << std::endl;
     for (unsigned long long entry = 0; entry < entries; ++entry) {
-
-      // Load the event:
-      assert(event.getEntry(entry) >= 0);
-
       // Print some status:
       if ( ! (entry % 500)) {
         std::cout << "Processing " << entry << "/" << entries << "\n";
       }
+
+      // Load the event:
+      assert(event.getEntry(entry) >= 0);
+
       const xAOD::JetContainer *jets = 0;
       assert(event.retrieve(jets, "AntiKt4EMTopoJets").isSuccess());
 
       for (const xAOD::Jet *jet : *jets) {
-        std::cout << jet->pt() << std::endl;
+        jet_writer.write(*jet);
       }
 
     } // end event loop

@@ -6,7 +6,7 @@
 cmake_minimum_required( VERSION 3.2 FATAL_ERROR )
 
 # we want a debug build, so we know where things crashed
-set(CMAKE_BUILD_TYPE Debug)
+# set(CMAKE_BUILD_TYPE Debug)
 
 # get analysis base
 find_package( AnalysisBase 21.2 REQUIRED )
@@ -30,8 +30,8 @@ find_package(HDF5 1.10.1 REQUIRED COMPONENTS CXX C)
 
 # common requirements
 set(_common
-  # src/JetWriter.cxx
-  INCLUDE_DIRS ${ROOT_INCLUDE_DIRS} src
+  Root/JetWriter.cxx
+  INCLUDE_DIRS ${ROOT_INCLUDE_DIRS} Root
   LINK_LIBRARIES ${ROOT_LIBRARIES} ${HDF5_LIBRARIES}
   xAODRootAccess
   xAODJet
