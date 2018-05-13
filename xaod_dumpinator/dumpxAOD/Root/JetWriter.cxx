@@ -27,7 +27,7 @@ JetWriter::JetWriter(H5::Group& output_group):
     });
 
   fillers.add<float>("jf_sig", [this]() {
-      return this->m_jf_sig(*this->m_current_jet);
+      return this->m_jf_sig(*this->m_current_jet->btagging());
     });
   m_writer = new H5Utils::WriterXd(output_group, "jets", fillers, {});
 }

@@ -5,8 +5,8 @@
 # Set the minimum required CMake version:
 cmake_minimum_required( VERSION 3.2 FATAL_ERROR )
 
-# we want a debug build, so we know where things crashed
-# set(CMAKE_BUILD_TYPE Debug)
+# For some reason this is required (otherwise it crashes)
+set(CMAKE_BUILD_TYPE Debug)
 
 # get analysis base
 find_package( AnalysisBase 21.2 REQUIRED )
@@ -14,10 +14,15 @@ find_package( AnalysisBase 21.2 REQUIRED )
 # # Set up a work directory project:
 atlas_project( WorkDir 1.0 USE AnalysisBase ${AnalysisBase_VERSION} )
 
+##################################################################
+# Package level things
+##################################################################
+#
+
 # Set the name of the package:
 atlas_subdir( dumpxAOD )
 
-# Packages that this package depends on. Not very much!
+# Packages that this package depends on
 atlas_depends_on_subdirs(
   PRIVATE
   Control/xAODRootAccess

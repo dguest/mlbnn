@@ -1,8 +1,8 @@
-// EDM things
-#include "xAODJet/JetContainer.h"
-
 // local tools
 #include "JetWriter.h"
+
+// EDM things
+#include "xAODJet/JetContainer.h"
 
 // AnalysisBase tool include(s):
 #include "xAODRootAccess/Init.h"
