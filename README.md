@@ -32,7 +32,7 @@ Part 0: Choosing the problem
 
 Long lived particle searches are super trendy this year. Matt doesn't want to miss out, but he also doesn't want to jump into an overcrowded group with no plan but to elbow his way to the front. There are plenty of people doing that on ATLAS already. He needs a cool new idea. How about this: we have algorithms finders for b-tagging that work ok, let's reoptimize them for long lived particles!
 
-Again Matt doesn't have time to do this whole project himself, that's what grad students are for. We just want to get him up and running so that he can supervise his badass minions. So we'll start by training a basic b-tagger, and then we can use these ideas to look for more interesting things.
+Again Matt doesn't have time to do this whole project himself, that's what grad students are for. And Matt has the best grad students. They are diligent. They never complain. They never sleep. They don't even eat unless the food uses AtlasStyle. You've heard of the top 5 grad students on ATLAS, Matt's are better than all those. So we just want to get Matt up and running so that he can supervise these badass minions. So we'll start by training a basic b-tagger, and then we can use these ideas to look for more interesting things.
 
 
 Part 1: Data Pipeline
