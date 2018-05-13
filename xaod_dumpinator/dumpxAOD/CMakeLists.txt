@@ -36,7 +36,7 @@ find_package(HDF5 1.10.1 REQUIRED COMPONENTS CXX C)
 # common requirements
 set(_common
   Root/JetWriter.cxx
-  INCLUDE_DIRS ${ROOT_INCLUDE_DIRS} Root
+  INCLUDE_DIRS ${ROOT_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS}
   LINK_LIBRARIES ${ROOT_LIBRARIES} ${HDF5_LIBRARIES}
   xAODRootAccess
   xAODJet

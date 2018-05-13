@@ -1,5 +1,5 @@
 // local tools
-#include "JetWriter.h"
+#include "Root/JetWriter.h"
 
 // EDM things
 #include "xAODJet/JetContainer.h"
@@ -24,7 +24,6 @@ int main (int argc, char *argv[])
 {
 
   // set up xAOD basics
-  xAOD::TReturnCode::enableFailure();
   assert(xAOD::Init().isSuccess());
   xAOD::TEvent event(xAOD::TEvent::kClassAccess);
 
