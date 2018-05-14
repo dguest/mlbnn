@@ -13,13 +13,16 @@ import os
 def get_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('input_file')
-    parser.add_argument('-o','--output-dir', default='plots')
+    parser.add_argument('-o', '--output-dir', default='plots')
+    parser.add_argument('-n', '--nn', nargs=2,
+                        help='nn architecture and weights')
     return parser.parse_args()
 
 # Start by defining the bounds of the histograms
 BOUNDS = {
     'rnnip_log_ratio': (-10, 15),
-    'jf_sig': (0, 40)
+    'jf_sig': (0, 40),
+    'nn': (-10, 15)
 }
 
 
@@ -48,7 +51,14 @@ def run():
     bounds = BOUNDS
     # the histograms will be stored in this dictionary
     for varname, (lowbin, highbin) in bounds.items():
-        var = jets[varname]
+        if varname == 'nn':
+            if args.nn:
+                from train_nn import get_discrim
+                var = get_discrim(jets, *args.nn)
+            else:
+                continue
+        else:
+            var = jets[varname]
         # set NaN values to small value (should only show up in rnnip_ratio)
         var[np.isnan(var)] = -9
         # make an axis to draw some distributinos

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Simple script to draw some distributions.
+Simple script to draw roc curves
 """
 
 import argparse
