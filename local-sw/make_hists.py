@@ -51,14 +51,19 @@ def run():
     bounds = BOUNDS
     # the histograms will be stored in this dictionary
     for varname, (lowbin, highbin) in bounds.items():
+
+        # this is a bunch of silly logic, but basically we compute
+        # the NN score if we were given a network
         if varname == 'nn':
             if args.nn:
                 from train_nn import get_discrim
                 var = get_discrim(jets, *args.nn)
             else:
                 continue
+        # otherwise we just take the variable out of jets
         else:
             var = jets[varname]
+
         # set NaN values to small value (should only show up in rnnip_ratio)
         var[np.isnan(var)] = -9
         # make an axis to draw some distributinos

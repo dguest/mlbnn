@@ -17,6 +17,7 @@ from make_hists import BOUNDS
 def get_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('input_file')
+    parser.add_argument('-e','--epochs', type=int, default=1)
     parser.add_argument('-o','--output-dir', default='model')
     return parser.parse_args()
 
@@ -44,7 +45,7 @@ def run():
                   metrics=['accuracy'])
 
     # now fit this thing!
-    model.fit(input_data, targets)
+    model.fit(input_data, targets, epochs=args.epochs)
 
     # finally, save the trained network
     odir = args.output_dir

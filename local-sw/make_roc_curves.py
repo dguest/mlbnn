@@ -17,6 +17,8 @@ def get_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('input_file')
     parser.add_argument('-o','--output-dir', default='plots')
+    parser.add_argument('-n', '--nn', nargs=2,
+                        help='nn architecture and weights')
     return parser.parse_args()
 
 def run():
@@ -26,9 +28,9 @@ def run():
     with h5py.File(args.input_file, 'r') as infile:
         jets = np.asarray(infile['jets'])
 
-    make_roc(jets, args.output_dir)
+    make_roc(jets, args.output_dir, args.nn)
 
-def make_roc(jets, output_dir):
+def make_roc(jets, output_dir, nn):
 
     # Read in the jet labels.
     labels = jets['HadronConeExclExtendedTruthLabelID']
@@ -40,7 +42,19 @@ def make_roc(jets, output_dir):
     # make an axis to draw some distributinos
     ax = plt.subplot(1,1,1)
     for varname, (lowbin, highbin) in BOUNDS.items():
-        var = jets[varname]
+
+        # this is a bunch of silly logic, but basically we compute
+        # the NN score if we were given a network
+        if varname == 'nn':
+            if nn:
+                from train_nn import get_discrim
+                var = get_discrim(jets, *nn)
+            else:
+                continue
+        # otherwise we just take the variable out of jets
+        else:
+            var = jets[varname]
+
         # set NaN values to small value (should only show up in rnnip_ratio)
         var[np.isnan(var)] = -9
         # define the bin bounds (note that we want overflow, thus the inf)
