@@ -21,10 +21,10 @@ JetWriter::JetWriter(H5::Group& output_group):
   // arguments, but includes a pointer to the class instance, and by
   // extension to the current jet.
   H5Utils::VariableFillers fillers;
-  fillers.add<float>("rnnip_ratio", [this]() {
+  fillers.add<float>("rnnip_log_ratio", [this]() {
       double num = this->m_rnnip_pb(*this->m_current_jet->btagging());
       double denom = this->m_rnnip_pu(*this->m_current_jet->btagging());
-      return num / denom;
+      return std::log(num / denom);
     });
   fillers.add<float>("jf_sig", [this]() {
       return this->m_jf_sig(*this->m_current_jet->btagging());

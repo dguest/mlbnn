@@ -63,7 +63,9 @@ int main (int argc, char *argv[])
       RETURN_CHECK(ALG, event.retrieve(jets, "AntiKt4EMTopoJets"));
 
       for (const xAOD::Jet *jet : *jets) {
-        jet_writer.write(*jet);
+        if (jet->pt() > 20e3 && std::abs(jet->eta()) < 2.5) {
+          jet_writer.write(*jet);
+        }
       }
 
     } // end event loop
