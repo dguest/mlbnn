@@ -14,6 +14,7 @@ JetWriter::JetWriter(H5::Group& output_group):
   m_rnnip_pu("rnnip_pu"),
   m_rnnip_pb("rnnip_pb"),
   m_jf_sig("JetFitter_significance3d"),
+  m_flavor_label("HadronConeExclExtendedTruthLabelID"),
   m_writer(nullptr)
 {
   // define the variable filling functions. Each function takes no
@@ -28,6 +29,9 @@ JetWriter::JetWriter(H5::Group& output_group):
 
   fillers.add<float>("jf_sig", [this]() {
       return this->m_jf_sig(*this->m_current_jet->btagging());
+    });
+  fillers.add<int>("HadronConeExclExtendedTruthLabelID", [this]() {
+      return this->m_flavor_label(*this->m_current_jet);
     });
   m_writer = new H5Utils::WriterXd(output_group, "jets", fillers, {});
 }

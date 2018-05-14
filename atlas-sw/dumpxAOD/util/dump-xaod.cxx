@@ -22,9 +22,9 @@
 
 int main (int argc, char *argv[])
 {
-
+  const char* ALG = argv[0];
   // set up xAOD basics
-  assert(xAOD::Init().isSuccess());
+  RETURN_CHECK(ALG, xAOD::Init());
   xAOD::TEvent event(xAOD::TEvent::kClassAccess);
 
   // set up output file
@@ -43,22 +43,24 @@ int main (int argc, char *argv[])
     std::cout << "Opened file: " << file_name << std::endl;
 
     // Connect the event object to it:
-    assert(event.readFrom(ifile.get()).isSuccess());
+    RETURN_CHECK(ALG, event.readFrom(ifile.get()));
 
     // Loop over its events:
     const unsigned long long entries = event.getEntries();
     std::cout << "got " << entries << " entries" << std::endl;
     for (unsigned long long entry = 0; entry < entries; ++entry) {
-      // Print some status:
+
+      // Print some status
       if ( ! (entry % 500)) {
         std::cout << "Processing " << entry << "/" << entries << "\n";
       }
 
       // Load the event:
-      assert(event.getEntry(entry) >= 0);
+      bool ok = event.getEntry(entry) >= 0;
+      if (!ok) throw std::logic_error("getEntry failed");
 
       const xAOD::JetContainer *jets = 0;
-      assert(event.retrieve(jets, "AntiKt4EMTopoJets").isSuccess());
+      RETURN_CHECK(ALG, event.retrieve(jets, "AntiKt4EMTopoJets"));
 
       for (const xAOD::Jet *jet : *jets) {
         jet_writer.write(*jet);

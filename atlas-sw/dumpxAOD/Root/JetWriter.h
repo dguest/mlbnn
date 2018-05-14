@@ -47,7 +47,7 @@ private:
   AE::ConstAccessor<double> m_rnnip_pu;
   AE::ConstAccessor<double> m_rnnip_pb;
   AE::ConstAccessor<float> m_jf_sig;
-
+  AE::ConstAccessor<int> m_flavor_label;
   // The writer itself
   H5Utils::WriterXd* m_writer;
 };
