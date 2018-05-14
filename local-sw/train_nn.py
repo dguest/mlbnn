@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Simple script to draw roc curves
+Simple script to train a neural network with keras
 """
 
 import argparse

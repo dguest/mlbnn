@@ -24,7 +24,9 @@ He might need to learn a few things, but he doesn't have time to learn much. So 
 
 Matt isn't happy that there are so many trendy new packages in this list, but as long as we keep him using the few features he actually needs he'll manage.
 
-As a final note: the later set of dependencies are non-standard in the ATLAS workflow but are _very_ common in the data science world and are easy to install with standard installation tools like `pip`. As such Matt will factorize things: first he'll produce data files on lxplus, then he'll run the training on his laptop or some other system with minimal dependencies on "HEP" tools.
+**As a final note:** the later set of dependencies are non-standard in the ATLAS workflow but are _very_ common in the data science world and are easy to install with standard installation tools like `pip`. As such Matt will factorize things: first he'll produce data files on lxplus, then he'll run the training on his laptop or some other system with minimal dependencies on "HEP" tools.
+
+We're also going to force Matt to use python 3. Why? First off, it _is_ the future: python 2 will be deprecated very soon. But beyond that, Matt already has 15 conflicting package managers for python 2, so the python 2 installation on his laptop is a smoking pile of garbage already. But it's a pile of garbage that Matt needs to make plots, so we won't mess with that.
 
 
 Part 0: Choosing the problem
@@ -63,8 +65,16 @@ cd atlas-sw
 ./get-dataset.sh
 ```
 
-now Matt needs to build the dumping tool.
+now Matt needs to build the dumping tool. Fortunately, there's already an example sitting in `atlas-sw`.
+
 
 Part 2: Training
 ================
 
+To be done...
+
+
+Part 3: Applying in Atlas
+=========================
+
+To be done...
