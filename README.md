@@ -26,33 +26,25 @@ Matt isn't happy that there are so many trendy new packages in this list, but as
 
 **As a final note:** the later set of dependencies are non-standard in the ATLAS workflow but are _very_ common in the data science world and are easy to install with standard installation tools like `pip`. As such Matt will factorize things: first he'll produce data files on lxplus, then he'll run the training on his laptop or some other system with minimal dependencies on "HEP" tools.
 
-We're also going to force Matt to use python 3. Why? First off, it _is_ the future: python 2 will be deprecated very soon. But beyond that, Matt already has 15 conflicting package managers for python 2, so the python 2 installation on his laptop is a smoking pile of garbage already. But it's a pile of garbage that Matt needs to make plots, so we won't mess with that.
-
-
-Part 0: Choosing the problem
-============================
-
-Long lived particle searches are super trendy this year. Matt doesn't want to miss out, but he also doesn't want to jump into an overcrowded group with no plan but to elbow his way to the front. There are plenty of people doing that on ATLAS already. He needs a cool new idea. How about this: we have algorithms finders for b-tagging that work ok, let's reoptimize them for long lived particles!
-
-Again Matt doesn't have time to do this whole project himself, that's what grad students are for. And Matt has the best grad students. They are diligent. They never complain. They never sleep. They don't even eat unless the food uses AtlasStyle. You've heard of the top 5 grad students on ATLAS, Matt's are better than all those. So we just want to get Matt up and running so that he can supervise these badass minions. We'll start by training a basic b-tagger, and let grad students worry about silly things like calibration and optimization.
+We're also going to **force Matt to use python 3**. Why? First off, it _is_ the future: python 2 will be deprecated very soon. But beyond that, Matt already has 15 conflicting package managers for python 2, so the python 2 installation on his laptop is a smoking pile of garbage already. But it's a pile of garbage where he got PyRoot working, so we won't mess with that.
 
 
 Part 1: Data Pipeline
 =====================
 
-Matt cares deeply about his students. One thing that they keep screwing up is the data pipeline. They make it too complicated! Sure, maybe DxAOD -> TinyxAOD -> EgammaNtuple -> miniTinyNtuple -> HDF5 -> pickled numpy got the job done, but now his paper is in approval and Convener Mc Jerkface wants to make some "trival" check that requires rerunning everything! Not cool!
+Matt has the best grad students. They are diligent. They never complain. They never sleep. They don't even eat unless the food uses AtlasStyle. You've heard of the top 5 grad students on ATLAS, Matt's are better than all those. We just have to get Matt up and running so that he can supervise these badass minions.
+
+One thing that they keep screwing up is the data pipeline. They make it too complicated! Sure, maybe DxAOD -> TinyxAOD -> PhysicsNtuple -> miniTinyNtuple -> HDF5 -> pickled numpy got the job done, but now his paper is in approval and Convener Mc Jerkface wants to make some "trival" check that requires rerunning everything! Not cool!
 
 Matt wishes that his students had just produced their silly training dataset directly from the DxAOD, so that this would be an easy one-step process.
 
-### Aside: Frameworks are Stupid ###
+### Aside: Frameworks are Born to Die ###
 
-Analysis frameworks are stupid. Every grad student should write one, but once you've seen one you've seen them all: they run over a list of datasets and write out histograms with systematic variations. Most of the code in frameworks is just workarounds for bad tool interfaces, and as such the main goal of every framework should be to die gracefully once the underlying tools have been fixed. The goal of the framework maintainer should be to fix the underlying tools so that the next generation of frameworks can be simpler.
-
-Matt doesn't want to see an example of how to train neural networks in CommonxAODHelperTools, even though he's an expert, because his grad student only knows TAnalysisHistFactory. They are both piles of garbage that were once understood by the postdoc who wrote them, but that guy works at Apple now. So Matt just needs to see a minimal working example. The bells and whistles like calibration tools can be added in later.
+Analysis frameworks are the first thing to die when a postdoc stops writing code. Matt doesn't want to see an example of how to train neural networks in CommonxAODHelperTools, even though he's an expert, because his grad student only knows TAnalFactory. They were both once understood by the postdoc who wrote them, but that guy works at Apple now. Matt just needs something simple, not a framework. The bells and whistles like calibration tools can be added in later.
 
 ### Minimal Dumping Tool ###
 
-Since xAODs are the only universal API that ATLAS has for data, Matt is going to dump directly from that. All the code to do this stuff lives in `atlas-sw`, since, again, we want to separate crufty "ATLAS" things from "ML" things. First we'll grab a simulated sample to work with.
+Since xAODs are the only universal API that ATLAS has for data, Matt is going to dump directly from that. All the code to do this stuff lives in `atlas-sw`. Again, we want to separate crufty "ATLAS" things from "ML" things. First we'll grab a simulated sample to work with.
 
 ```
 rucio get --nrandom 1 mc16_13TeV.410470.PhPy8EG_A14_ttbar_hdamp258p75_nonallhad.deriv.DAOD_FTAG2.e6337_e5984_s3126_r9781_r9778_p3415/
