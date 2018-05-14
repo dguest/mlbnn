@@ -16,6 +16,13 @@ def get_args():
     parser.add_argument('-o','--output-dir', default='plots')
     return parser.parse_args()
 
+# Start by defining the bounds of the histograms
+BOUNDS = {
+    'rnnip_log_ratio': (-10, 15),
+    'jf_sig': (0, 40)
+}
+
+
 def run():
     args = get_args()
 
@@ -38,16 +45,12 @@ def run():
 
     # Next we plot a few distributions, for light and b-jets
     #
-    # Start by defining the bounds of the histograms
-    bounds = {
-        'rnnip_log_ratio': (-10, 15),
-        'jf_sig': (0, 40)
-    }
+    bounds = BOUNDS
     # the histograms will be stored in this dictionary
     for varname, (lowbin, highbin) in bounds.items():
         var = jets[varname]
         # set NaN values to small value (should only show up in rnnip_ratio)
-        var[np.isnan(var)] = -1
+        var[np.isnan(var)] = -9
         # make an axis to draw some distributinos
         ax = plt.subplot(1,1,1)
         # define the bin bounds (note that we want overflow, thus the inf)
