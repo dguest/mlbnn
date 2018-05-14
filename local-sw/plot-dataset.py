@@ -27,18 +27,20 @@ def run():
         jets = np.asarray(infile['jets'])
 
     # Read in the jet labels. Right now we're only worried about three
-    # classes: the b-quarks, charm-quarks, and the light quarks
+    # classes: the b-quarks, charm-quarks, and the light quarks.  for
+    # now we ignore ones with double labels (i.e. 44, 45, 55).
     labels = jets['HadronConeExclExtendedTruthLabelID']
     is_b_jet = (labels == 5)
     is_ligth_jet = (labels == 0)
     is_c_jet = (labels == 4)
     masks = [(is_b_jet, 'b'), (is_c_jet, 'c'), (is_ligth_jet, 'light')]
+    colors = {'b':'red', 'c': 'green', 'light': 'blue'}
 
     # Next we plot a few distributions, for light and b-jets
     #
     # Start by defining the bounds of the histograms
     bounds = {
-        'rnnip_ratio': (-2, 20),
+        'rnnip_log_ratio': (-10, 15),
         'jf_sig': (0, 40)
     }
     # the histograms will be stored in this dictionary
@@ -57,10 +59,12 @@ def run():
             yields, _ = np.histogram(var[mask], bins=edges)
             # normalize the yields
             yields = yields / yields.sum()
-            ax.step(centers, yields[1:-1], label=name, where='mid')
+            ax.step(centers, yields[1:-1], label=name, where='mid',
+                    color=colors[name])
 
         ax.set_yscale('log')
         ax.set_xlim((centers[0], centers[-1]))
+        ax.set_xlabel(varname)
         ax.legend()
         # make the output directory
         if not os.path.isdir(args.output_dir):
@@ -75,7 +79,7 @@ def run():
     # This one will show (b, c, light) as rgb channels in a 2d plot
     channels = []
     for mask, name in masks:
-        ax_names = ['rnnip_ratio', 'jf_sig']
+        ax_names = ['rnnip_log_ratio', 'jf_sig']
         points = np.stack([jets[x][mask] for x in ax_names], axis=1)
         edges = [np.linspace(*bounds[v], 20) for v in ax_names]
         # we need to transform the counts to fit them in 0--1 range and
@@ -83,8 +87,11 @@ def run():
         hist = np.log1p(np.histogramdd(points, edges)[0])
         channels.append(hist.T / hist.max())
     merged = np.stack(channels,axis=2)
-    plt.imshow(merged, origin='lower', aspect='auto',
-               extent=(*bounds['rnnip_ratio'], *bounds['jf_sig']))
+    ax = plt.subplot(1,1,1)
+    ax.imshow(merged, origin='lower', aspect='auto',
+               extent=(*bounds['rnnip_log_ratio'], *bounds['jf_sig']))
+    ax.set_xlabel('rnnip ratio')
+    ax.set_ylabel('JetFitter Sig')
     plt.savefig('{}/{}.pdf'.format(args.output_dir, '2d'))
 
 if __name__ == '__main__':
