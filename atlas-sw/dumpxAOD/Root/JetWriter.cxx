@@ -26,7 +26,6 @@ JetWriter::JetWriter(H5::Group& output_group):
       double denom = this->m_rnnip_pu(*this->m_current_jet->btagging());
       return num / denom;
     });
-
   fillers.add<float>("jf_sig", [this]() {
       return this->m_jf_sig(*this->m_current_jet->btagging());
     });
