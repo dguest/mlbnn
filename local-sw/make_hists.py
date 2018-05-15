@@ -52,6 +52,7 @@ def run():
     # the histograms will be stored in this dictionary
     for varname, (lowbin, highbin) in bounds.items():
 
+
         # this is a bunch of silly logic, but basically we compute
         # the NN score if we were given a network
         if varname == 'nn':
@@ -66,8 +67,21 @@ def run():
 
         # set NaN values to small value (should only show up in rnnip_ratio)
         var[np.isnan(var)] = -9
-        # make an axis to draw some distributinos
+
+
+        # Make an axis to draw some distributins. For someone comming
+        # from ROOT this will look like a lot of work to get one
+        # histogram. In practice I would recommend wrapping everything
+        # in a function calls, but I've left it flat here so that the
+        # procedure is clear.
+        #
+        # Also note that we're using the pyplot interface here. It's
+        # definitely the easiest way to get started, but it also does
+        # strange things with respect to resource management. For
+        # something that uses reference counting more naturally, see
+        # here: https://stackoverflow.com/a/16337909
         ax = plt.subplot(1,1,1)
+
         # define the bin bounds (note that we want overflow, thus the inf)
         edges = np.concatenate(
             [[-np.inf], np.linspace(lowbin, highbin, 20), [np.inf]])
@@ -91,6 +105,7 @@ def run():
         plt.savefig('{}/{}.pdf'.format(args.output_dir, varname))
         plt.close()
 
+
     # Let's make another histogram, just for fun, that shows the
     # correlation between our variables.
     #
@@ -98,12 +113,19 @@ def run():
     channels = []
     for mask, name in masks:
         ax_names = ['rnnip_log_ratio', 'jf_sig']
+        # build a (N,2) array for use with the histogram function
         points = np.stack([jets[x][mask] for x in ax_names], axis=1)
+        # build the axes
         edges = [np.linspace(*bounds[v], 20) for v in ax_names]
-        # we need to transform the counts to fit them in 0--1 range and
-        # make everything visible
+        # we need to transform the counts to fit them in 0--1 range
+        # that imshow expects
         hist = np.log1p(np.histogramdd(points, edges)[0])
+        # the ".T" (transpose) operation here is a bit of a wart on
+        # the imshow API: it expects things in column-major order,
+        # whereas any sane person will expect row-major.
         channels.append(hist.T / hist.max())
+
+    # merge the RGB channels into one 20x20x3 image array
     merged = np.stack(channels,axis=2)
     ax = plt.subplot(1,1,1)
     ax.imshow(merged, origin='lower', aspect='auto',

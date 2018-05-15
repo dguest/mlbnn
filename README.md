@@ -32,19 +32,11 @@ We're also going to **force Matt to use python 3**. Why? First off, it _is_ the 
 Part 1: Data Pipeline
 =====================
 
-Matt has the best grad students. They are diligent. They never complain. They never sleep. They don't even eat unless the food uses AtlasStyle. You've heard of the top 5 grad students on ATLAS, Matt's are better than all those. We just have to get Matt up and running so that he can supervise these badass minions.
+Matt has the best grad students, but they keep screwing up is the data pipeline. They make it too complicated! Sure, maybe DxAOD -> TinyxAOD -> PhysicsNtuple -> miniTinyNtuple -> HDF5 -> pickled numpy got the job done, but now his paper is in approval and Convener Mc Jerkface wants to make some "trival" check that requires rerunning everything! Not cool!
 
-One thing that they keep screwing up is the data pipeline. They make it too complicated! Sure, maybe DxAOD -> TinyxAOD -> PhysicsNtuple -> miniTinyNtuple -> HDF5 -> pickled numpy got the job done, but now his paper is in approval and Convener Mc Jerkface wants to make some "trival" check that requires rerunning everything! Not cool!
+Matt wishes that his students had just produced their training dataset directly from the DxAOD, so that this would be an easy one-step process. This also gives us a nice example that will work outside your analysis group.
 
-Matt wishes that his students had just produced their silly training dataset directly from the DxAOD, so that this would be an easy one-step process.
-
-### Aside: Frameworks are Born to Die ###
-
-Analysis frameworks are the first thing to die when a postdoc stops writing code. Matt doesn't want to see an example of how to train neural networks in CommonxAODHelperTools, even though he's an expert, because his grad student only knows TAnalFactory. They were both once understood by the postdoc who wrote them, but that guy works at Apple now. Matt just needs something simple, not a framework. The bells and whistles like calibration tools can be added in later.
-
-### Minimal Dumping Tool ###
-
-Since xAODs are the only universal API that ATLAS has for data, Matt is going to dump directly from that. All the code to do this stuff lives in `atlas-sw`. Again, we want to separate crufty "ATLAS" things from "ML" things. First we'll grab a simulated sample to work with.
+All the code to dump stuff lives in `atlas-sw`. Again, we want to separate "ATLAS" things from "ML" things. First we'll grab a simulated sample to work with.
 
 ```
 rucio get --nrandom 1 mc16_13TeV.410470.PhPy8EG_A14_ttbar_hdamp258p75_nonallhad.deriv.DAOD_FTAG2.e6337_e5984_s3126_r9781_r9778_p3415/
@@ -57,16 +49,99 @@ cd atlas-sw
 ./get-dataset.sh
 ```
 
-now Matt needs to build the dumping tool. Fortunately, there's already an example sitting in `atlas-sw`.
+now Matt needs to build the dumping tool. Fortunately, there's already an example sitting in `atlas-sw`. He can build it with
+
+```
+cd atlas-sw
+source dumpxAOD/setup.sh
+mkdir build
+cd build
+cmake ../dumpxAOD
+make
+```
+
+and then run it with
+
+```
+./x86_64-slc6-gcc62-opt/bin/dump-xaod <path-to-xaod>
+```
+
+this should produce an output file called `output.h5`. What the hell is that? Well, let's check:
+
+```
+h5ls -v output.h5
+```
+
+which gives something like this:
+
+```
+Opened "output.h5" with sec2 driver.
+jets                     Dataset {140365/Inf}
+    Location:  1:800
+    Links:     1
+    Chunks:    {2048} 24576 bytes
+    Storage:   1684380 logical bytes, 748544 allocated bytes, 225.02% utilization
+    Filter-0:  deflate-1 OPT {7}
+    Type:      struct {
+                   "rnnip_log_ratio"  +0    native float
+                   "jf_sig"           +4    native float
+                   "HadronConeExclExtendedTruthLabelID" +8    native int
+               } 12 bytes
+```
+
+This tells that `output.h5` contains a dataset called `jets`, which contains roughly 140k jets. The other useful field is `Type` which says that we're storing a few fields, some as `native float` (these are the discriminants) and some as `native int` (these are labels). Also try `h5ls -dl output.h5`.
+
+Looking in `dumpxAOD`, there are only a few files: in `util` there's a simple for loop over the events, and in `Root` there's a tool `JetWriter` which is called by the dumper loop.
 
 
 Part 2: Training
 ================
 
-To be done...
+The training part takes place outside any ATLAS environment. Nothing we're doing here depends on ROOT, so setup should be easy. All this code lives in `local-sw`.
+
+Installing Keras and Friends
+----------------------------
+
+Assuming Matt is on his laptop, he should be able to install everything with
+
+```
+brew install python3
+pip3 install keras h5py matplotlib
+```
+
+If this takes longer than 30 seconds something is wrong.
+
+Running the training
+--------------------
+
+Hold on! Matt knows better than to train a neural network before he's even made a histogram. Fortunately we have a few short scripts to look at the dataset. First he downloads the `output.py` file to the `data/` directory. Then he runs
+
+```
+./make_hist.py data/output.h5
+./make_roc_curves.py data/output.h5
+```
+
+This creates a directory called `plots/` with a few plots to look at. (You can read these scripts, they aren't very long) Most importantly we see that we have several good discriminants for b vs light separation.
+
+But maybe we can do better. To train a very simple neural network, Matt runs
+
+```
+./train_nn.py data/output.h5
+```
+
+This should take less than a minute, because it's an extremely simple network: one layer with two inputs and three output classes (basically logistic regression). The resulting network is stored in the `model/` directory, in two parts: architecture and weights. Both are easy to inspect: the architecture is a text file, while the weights can be dumped with `h5ls`.
+
+Finally, Matt wants to check the performance. Both of the plotting scripts (`make_roc_curves.py` and `make_plots.py`) take an `--nn <arch> <weights>` argument. The NN should work _slightly_ better than the discriminants alone.
+
+Of course we don't want to stop with slightly better, but to make a better network we'll need more inputs, more layers, and other fancy things which would detract from this example.
 
 
 Part 3: Applying in Atlas
 =========================
 
-To be done...
+(Note: This will be expanded)
+
+When we want to apply a neural network in ATLAS reconstruction, we have a problem: all this stuff uses Python, whereas Athena is C++. Fortunately we have a package to help, see [lwtnn][1]. For examples where this is applied, see [BoostedJetTaggers][2].
+
+[1]: https://github.com/lwtnn/lwtnn
+[2]: https://gitlab.cern.ch/atlas/athena/tree/21.2/Reconstruction/Jet/BoostedJetTaggers

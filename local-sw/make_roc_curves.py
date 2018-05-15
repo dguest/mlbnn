@@ -66,7 +66,9 @@ def make_roc(jets, output_dir, nn):
         all_eff = {}
         for mask, name in masks:
             discrim, _ = np.histogram(var[mask], bins=edges)
-            # normalize the yields
+            # normalize the integrated discriminant note that we want
+            # to start with high values, thus the [::-1] to flip the
+            # axes.
             eff = np.cumsum(discrim[::-1])[::-1] / discrim.sum()
             all_eff[name] = eff
 
