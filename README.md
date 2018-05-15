@@ -26,7 +26,7 @@ Matt isn't happy that there are so many trendy new packages in this list, but as
 
 **As a final note:** the later set of dependencies are non-standard in the ATLAS workflow but are _very_ common in the data science world and are easy to install with standard installation tools like `pip`. As such Matt will factorize things: first he'll produce data files on lxplus, then he'll run the training on his laptop or some other system with minimal dependencies on "HEP" tools.
 
-We're also going to **force Matt to use python 3**. Why? First off, it _is_ the future: python 2 will be deprecated very soon. But beyond that, Matt already has 15 conflicting package managers for python 2, so the python 2 installation on his laptop is a smoking pile of garbage already. But it's a pile of garbage where he got PyRoot working, so we won't mess with that.
+We're also going to **force Matt to use python 3**. Why? First off, it _is_ the future: Python 2 [will be deprecated very soon](https://pythonclock.org/). But beyond that, Matt already has 15 conflicting package managers for python 2, so the python 2 installation on his laptop is a smoking pile of garbage already. But it's a pile of garbage where he got PyRoot working, so we won't mess with that.
 
 
 Part 1: Data Pipeline
