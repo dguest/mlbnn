@@ -3,7 +3,7 @@ Matt LeBlanc Trains a Neural Network
 
 Everyone loves matt leblanc. He's charming, handsome, and a very talented particle physicist! But the last part is giving Matt trouble. Particle physicists have themselves in a bundle over this whole ``deep learning'' thing, you see. And Matt doesn't get it. But he has to get it, cause it's not going away and Matt is too young to start acting like a grumpy old man.
 
-Matt needs to learn to train a neural network. Not a very good neural network---he has graduate students to do that. But he needs to understand the worlflow, the ideas, and most importantly he needs enough background to avoid falling for buzzword-first design principals.
+Matt needs to learn to train a neural network. Not a very good neural network---he has graduate students to do that. But he needs to understand the worlflow, the ideas, and most importantly he needs enough background to avoid falling for buzzword-first design principles.
 
 This is a tutorial to teach Matt what he needs to know.
 
