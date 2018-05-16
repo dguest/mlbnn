@@ -1,7 +1,7 @@
 Matt LeBlanc Trains a Neural Network
 ====================================
 
-Everyone loves matt leblanc. He's charming, handsome, and a very talented particle physicist! But the last part is giving Matt trouble. Particle physicists have themselves in a bundle over this whole ``deep learning'' thing, you see. And Matt doesn't get it. But he has to get it, cause it's not going away and Matt is too young to start acting like a grumpy old man.
+Everyone loves Matt LeBlanc. He's charming, handsome, and a very talented particle physicist! But the last part is giving Matt trouble. Particle physicists have themselves in a bundle over this whole ''deep learning'' thing, you see. And Matt doesn't get it. But he has to get it, cause it's not going away and Matt is too young to start acting like a grumpy old man.
 
 Matt needs to learn to train a neural network. Not a very good neural network---he has graduate students to do that. But he needs to understand the worlflow, the ideas, and most importantly he needs enough background to avoid falling for buzzword-first design principles.
 
@@ -26,13 +26,13 @@ Matt isn't happy that there are so many trendy new packages in this list, but as
 
 **As a final note:** the later set of dependencies are non-standard in the ATLAS workflow but are _very_ common in the data science world and are easy to install with standard installation tools like `pip`. As such Matt will factorize things: first he'll produce data files on lxplus, then he'll run the training on his laptop or some other system with minimal dependencies on "HEP" tools.
 
-We're also going to **force Matt to use python 3**. Why? First off, it _is_ the future: Python 2 [will be deprecated very soon](https://pythonclock.org/). But beyond that, Matt already has 15 conflicting package managers for python 2, so the python 2 installation on his laptop is a smoking pile of garbage already. But it's a pile of garbage where he got PyRoot working, so we won't mess with that.
+We're also going to **force Matt to use Python 3**. Why? First off, it _is_ the future: Python 2 [will be deprecated very soon](https://pythonclock.org/). But beyond that, Matt already has 15 conflicting package managers for Python 2, so the Python 2 installation on his laptop is a smoking pile of garbage. But it's a pile of garbage where he got PyROOT working, so he can't afford to break it. The key is that Python 2 and Python 3 are _different packages_ from a package management point of view: we can play around with Python 3 _without breaking anything_ in Python 2.
 
 
 Part 1: Data Pipeline
 =====================
 
-Matt has the best grad students, but they keep screwing up is the data pipeline. They make it too complicated! Sure, maybe DxAOD -> TinyxAOD -> PhysicsNtuple -> miniTinyNtuple -> HDF5 -> pickled numpy got the job done, but now his paper is in approval and Convener Mc Jerkface wants to make some "trival" check that requires rerunning everything! Not cool!
+Matt has the best grad students, but they keep screwing up the data pipeline. They make it too complicated! Sure, maybe DxAOD -> TinyxAOD -> PhysicsNtuple -> miniTinyNtuple -> HDF5 -> pickled numpy got the job done, but now his paper is in approval and Convener Mc Jerkface wants to make some "trival" check that requires rerunning everything! Not cool!
 
 Matt wishes that his students had just produced their training dataset directly from the DxAOD, so that this would be an easy one-step process. This also gives us a nice example that will work outside your analysis group.
 
