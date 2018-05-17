@@ -40,9 +40,14 @@ void JetClassifier::decorate(const xAOD::Jet& jet) const {
   double rnnip_log_ratio = m_rnnip_pb(*btag) / m_rnnip_pu(*btag);
   double jf_sig = m_jf_sig(*btag);
 
-  // build them into a map
+  // Build them into a map. The outer map indexes input nodes, whereas
+  // the inner map indexes the individual inputs to each node. In this
+  // simple case we only have one input node.
   std::map<std::string, std::map<std::string, double> > inputs {
-    {"btag_variables", m_replacer->replace({
+    {"btag_variables",
+        // Replace any NaN values in the input map with the default
+        // values.
+        m_replacer->replace({
           {"jf_sig_log1p", std::log1p(jf_sig)},
           {"rnnip_log_ratio", rnnip_log_ratio} })}};
 

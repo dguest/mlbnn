@@ -20,9 +20,20 @@
 #include <memory>
 #include <cassert>
 
+// simple options struct
+struct Options
+{
+  std::vector<std::string> files;
+  std::string nn_file;
+};
+// simple options parser
+Options get_options(int argc, char *argv[]);
+
 int main (int argc, char *argv[])
 {
   const char* ALG = argv[0];
+  Options opts = get_options(argc, argv);
+
   // set up xAOD basics
   RETURN_CHECK(ALG, xAOD::Init());
   xAOD::TEvent event(xAOD::TEvent::kClassAccess);
@@ -32,8 +43,8 @@ int main (int argc, char *argv[])
   JetWriter jet_writer(output);
 
   // Loop over the specified files:
-  for (int file_n = 1; file_n < argc; ++file_n) {
-    std::string file_name = argv[file_n];
+  for (std::string file_name: opts.files) {
+
     // Open the file:
     std::unique_ptr<TFile> ifile(TFile::Open(file_name.c_str(), "READ"));
     if ( ! ifile.get() || ifile->IsZombie()) {
@@ -73,4 +84,32 @@ int main (int argc, char *argv[])
 
 
   return 0;
+}
+
+
+// define the options parser
+void usage(std::string name) {
+  std::cout << "usage: " << name << " [-h] [--nn-file NN_FILE] <AOD>..."
+            << std::endl;
+}
+
+Options get_options(int argc, char *argv[]) {
+  Options opts;
+  for (int argn = 1; argn < argc; argn++) {
+    std::string arg(argv[argn]);
+    if (arg == "--nn-file") {
+      argn++;
+      opts.nn_file = argv[argn];
+    } else if (arg == "-h") {
+      usage(argv[0]);
+      exit(1);
+    } else {
+      opts.files.push_back(arg);
+    }
+  }
+  if (opts.files.size() == 0) {
+    usage(argv[0]);
+    exit(1);
+  }
+  return opts;
 }
