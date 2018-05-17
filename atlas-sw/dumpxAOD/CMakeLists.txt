@@ -37,12 +37,14 @@ atlas_depends_on_subdirs(
 # External(s) used by the package:
 find_package(ROOT REQUIRED COMPONENTS RIO Hist Tree Net Core)
 find_package(HDF5 1.10.1 REQUIRED COMPONENTS CXX C)
+find_package(lwtnn)
 
 # common requirements
 set(_common
   Root/JetWriter.cxx
-  INCLUDE_DIRS ${ROOT_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS}
-  LINK_LIBRARIES ${ROOT_LIBRARIES} ${HDF5_LIBRARIES}
+  Root/JetClassifier.cxx
+  INCLUDE_DIRS ${ROOT_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} ${LWTNN_INCLUDE_DIRS}
+  LINK_LIBRARIES ${ROOT_LIBRARIES} ${HDF5_LIBRARIES} ${LWTNN_LIBRARIES}
   xAODRootAccess
   xAODJet
   HDF5Utils)
