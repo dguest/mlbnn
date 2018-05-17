@@ -1,5 +1,6 @@
 // local tools
 #include "Root/JetWriter.h"
+#include "Root/JetClassifier.h"
 
 // EDM things
 #include "xAODJet/JetContainer.h"
@@ -12,15 +13,20 @@
 // 3rd party includes
 #include "TFile.h"
 #include "H5Cpp.h"
+#include "lwtnn/LightweightGraph.hh"
+#include "lwtnn/NanReplacer.hh"
 
 // stl includes
 #include <stdexcept>
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <cassert>
 
-// simple options struct
+//////////////////////////////
+// simple options struct    //
+//////////////////////////////
 struct Options
 {
   std::vector<std::string> files;
@@ -29,10 +35,21 @@ struct Options
 // simple options parser
 Options get_options(int argc, char *argv[]);
 
+
+//////////////////
+// main routine //
+//////////////////
 int main (int argc, char *argv[])
 {
   const char* ALG = argv[0];
   Options opts = get_options(argc, argv);
+
+  // maybe apply the NN we're training to this data?
+  std::unique_ptr<const JetClassifier> classifier(nullptr);
+  if (opts.nn_file.size() > 0) {
+    std::ifstream input(opts.nn_file.c_str());
+    classifier.reset(new JetClassifier(input));
+  }
 
   // set up xAOD basics
   RETURN_CHECK(ALG, xAOD::Init());
@@ -40,7 +57,7 @@ int main (int argc, char *argv[])
 
   // set up output file
   H5::H5File output("output.h5", H5F_ACC_TRUNC);
-  JetWriter jet_writer(output);
+  JetWriter jet_writer(output, bool(opts.nn_file.size() > 0));
 
   // Loop over the specified files:
   for (std::string file_name: opts.files) {
@@ -75,6 +92,7 @@ int main (int argc, char *argv[])
 
       for (const xAOD::Jet *jet : *jets) {
         if (jet->pt() > 20e3 && std::abs(jet->eta()) < 2.5) {
+          if (classifier) classifier->decorate(*jet);
           jet_writer.write(*jet);
         }
       }

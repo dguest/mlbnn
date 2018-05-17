@@ -23,7 +23,7 @@ class JetWriter
 {
 public:
   // constructor: the writer will create the output dataset in some group
-  JetWriter(H5::Group& output_group);
+  JetWriter(H5::Group& output_group, bool save_nn);
 
   // destructor (takes care of flushing output file too)
   ~JetWriter();
@@ -48,6 +48,12 @@ private:
   AE::ConstAccessor<double> m_rnnip_pb;
   AE::ConstAccessor<float> m_jf_sig;
   AE::ConstAccessor<int> m_flavor_label;
+
+  // If we added NN outputs, these are to write those
+  AE::ConstAccessor<float> m_nn_light;
+  AE::ConstAccessor<float> m_nn_charm;
+  AE::ConstAccessor<float> m_nn_bottom;
+
   // The writer itself
   H5Utils::WriterXd* m_writer;
 };
