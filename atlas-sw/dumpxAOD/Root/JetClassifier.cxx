@@ -37,19 +37,22 @@ void JetClassifier::decorate(const xAOD::Jet& jet) const {
 
   // access input variables
   const SG::AuxElement* btag = jet.btagging();
-  double rnnip_log_ratio = m_rnnip_pb(*btag) / m_rnnip_pu(*btag);
-  double jf_sig = m_jf_sig(*btag);
+  double rnnip_log_ratio = std::log(m_rnnip_pb(*btag) / m_rnnip_pu(*btag));
+  double jf_sig_log1p = std::log1p(m_jf_sig(*btag));
 
+  // Replace any NaN values in the input map with the default values.
+  // these are expected when rnnip doesn't find tracks and returns all
+  // zeros.
+  auto input_map = m_replacer->replace({
+      {"jf_sig_log1p", jf_sig_log1p},
+      {"rnnip_log_ratio", rnnip_log_ratio}
+    });
   // Build them into a map. The outer map indexes input nodes, whereas
   // the inner map indexes the individual inputs to each node. In this
   // simple case we only have one input node.
   std::map<std::string, std::map<std::string, double> > inputs {
-    {"btag_variables",
-        // Replace any NaN values in the input map with the default
-        // values.
-        m_replacer->replace({
-          {"jf_sig_log1p", std::log1p(jf_sig)},
-          {"rnnip_log_ratio", rnnip_log_ratio} })}};
+    {"btag_variables", input_map}};
+
 
   // calculate output scores
   auto out_classes = m_graph->compute(inputs);
