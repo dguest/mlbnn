@@ -75,6 +75,11 @@ def get_discrim(jets, model_path, weights_path):
     Get the discriminant from a saved model
     """
 
+    # this just silences some annoying warnings that I get from
+    # tensorflow. They might be useful for training but in evaluation
+    # they should be harmless.
+    os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
+
     # load the model
     from keras.models import model_from_json
     with open(model_path,'r') as model_file:
@@ -111,7 +116,6 @@ def preproc_inputs(jets):
     # The jf_sig variable has a long tail. To "normalize" this a bit
     # we take the log(x + 1) transformation.
     jf = (np.log1p(jets['jf_sig']) + JF_OFFSET ) * JF_SCALE
-    print('jf mean: {}, std: {}'.format(np.mean(jf), np.std(jf)))
 
     # the rnnip ratio has the weird feature that the outputs are
     # sometimes NAN (because the algorithm returns zeros for all
@@ -120,7 +124,6 @@ def preproc_inputs(jets):
     rnnip = jets['rnnip_log_ratio']
     rnnip[np.isnan(rnnip)] = RNN_DEFAULT
     rnnip = (rnnip + RNN_OFFSET) * RNN_SCALE
-    print('rnnip mean: {}, std: {}'.format(np.mean(rnnip), np.std(rnnip)))
     return np.stack([jf, rnnip], axis=1)
 
 def get_variables_json():

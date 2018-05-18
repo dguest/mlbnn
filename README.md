@@ -139,9 +139,46 @@ Of course we don't want to stop with slightly better, but to make a better netwo
 Part 3: Applying in Atlas
 =========================
 
-(Note: This will be expanded)
+Like all Canadians, Matt is polite. He wants to share his newfound superpowers with the rest of the collaboration, he doesn't want to be _rude_ about it. Forcing everyone to install Keras just to use his silly NN would be most decidedly rude.
 
-When we want to apply a neural network in ATLAS reconstruction, we have a problem: all this stuff uses Python, whereas Athena is C++. Fortunately we have a package to help, see [lwtnn][1]. For examples where this is applied, see [BoostedJetTaggers][2].
+So Matt needs to put this thing into a C++ framework if he ever wants to show his face in East New Brunswick again. Fortunately, all the hard work is already done: Matt can use [lwtnn][1] to run his NN in his framework, the derivation framework, the high-level trigger, etc.
+
+After cloning lwtnn and adding `lwtnn/converters` to his `$PATH` Matt runs
+
+```
+cd model
+kerasfunc2json.py architecture.json weights.h5 variables.json > lwtnn-network.json
+```
+
+This dumps the full configuration of his trained network into a JSON file. Now we can copy this back to lxplus and verify that the NN behavior is reproducible there. The tool to apply the NN in C++ lives at
+
+```
+atlas-sw/dumpxAOD/Root/JetClassifier.cxx
+```
+
+We can use it to decorate jets by calling
+
+```
+./x86_64-slc6-gcc62-opt/bin/dump-xaod <path-to-xaod> --nn-file lwtnn-network.json
+```
+
+Finally, Matt gets to do a cutflow, with himself! He downloads the new `output.h5` file to his laptop and runs
+
+```
+./validate_nn.py data/output.h5 -n model/architecture.json model/weights.h5
+```
+
+Which should produce something like
+
+```
+most significant differences: [-1.17346644e-07 -1.81607902e-07 -1.18743628e-07 -1.17346644e-07  1.19442120e-07  1.81607902e-07]
+```
+
+Note that these are all O(10e-7), i.e. on the scale of roundoff errors. (And not even the "roundoff errors" you get when you don't feel like finishing a cutflow)
+
+Kabloomers!
+
+There's still a bunch of work left to do, but fortunately we've done all this before, see [BoostedJetTaggers][2] for a lot more examples.
 
 [1]: https://github.com/lwtnn/lwtnn
 [2]: https://gitlab.cern.ch/atlas/athena/tree/21.2/Reconstruction/Jet/BoostedJetTaggers
