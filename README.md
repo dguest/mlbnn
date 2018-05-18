@@ -32,7 +32,7 @@ We're also going to **force Matt to use Python 3**. Why? First off, it _is_ the 
 Part 1: Data Pipeline
 =====================
 
-Matt has the best grad students, but they keep screwing up the data pipeline. They make it too complicated! Sure, maybe DxAOD -> TinyxAOD -> PhysicsNtuple -> miniTinyNtuple -> HDF5 -> pickled numpy got the job done, but now his paper is in approval and the Convener wants to make some "trival" check that requires rerunning everything! Not cool!
+Matt has the best grad students, but they keep screwing up the data pipeline. They make it too complicated! Sure, maybe DxAOD -> TinyxAOD -> PhysicsNtuple -> miniTinyNtuple -> HDF5 -> pickled numpy got the job done, but now his paper is in approval and Dr Angrybeard wants to make some "trival" check that requires rerunning everything! Not cool!
 
 Matt wishes that his students had just produced their training dataset directly from the DxAOD, so that this would be an easy one-step process. This also gives us a nice example that will work outside your analysis group.
 
