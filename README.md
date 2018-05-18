@@ -32,7 +32,7 @@ We're also going to **force Matt to use Python 3**. Why? First off, it _is_ the 
 Part 1: Data Pipeline
 =====================
 
-Matt has the best grad students, but they keep screwing up the data pipeline. They make it too complicated! Sure, maybe DxAOD -> TinyxAOD -> PhysicsNtuple -> miniTinyNtuple -> HDF5 -> pickled numpy got the job done, but now his paper is in approval and Convener Mc Jerkface wants to make some "trival" check that requires rerunning everything! Not cool!
+Matt has the best grad students, but they keep screwing up the data pipeline. They make it too complicated! Sure, maybe DxAOD -> TinyxAOD -> PhysicsNtuple -> miniTinyNtuple -> HDF5 -> pickled numpy got the job done, but now his paper is in approval and the Convener wants to make some "trival" check that requires rerunning everything! Not cool!
 
 Matt wishes that his students had just produced their training dataset directly from the DxAOD, so that this would be an easy one-step process. This also gives us a nice example that will work outside your analysis group.
 
@@ -106,7 +106,7 @@ Assuming Matt is on his laptop, he should be able to install everything with
 
 ```
 brew install python3
-pip3 install keras h5py matplotlib
+pip3 install keras h5py theano matplotlib
 ```
 
 If this takes longer than 30 seconds something is wrong.
@@ -114,7 +114,7 @@ If this takes longer than 30 seconds something is wrong.
 Running the training
 --------------------
 
-Hold on! Matt knows better than to train a neural network before he's even made a histogram. Fortunately we have a few short scripts to look at the dataset. First he downloads the `output.py` file to the `data/` directory. Then he runs
+Hold on! Matt knows better than to train a neural network before he's even made a histogram. Fortunately we have a few short scripts to look at the dataset. First he downloads the `output.h5` file to the `data/` directory. Then he runs
 
 ```
 ./make_hist.py data/output.h5
@@ -131,7 +131,7 @@ But maybe we can do better. To train a very simple neural network, Matt runs
 
 This should take less than a minute, because it's an extremely simple network: one layer with two inputs and three output classes (basically logistic regression). The resulting network is stored in the `model/` directory, in two parts: architecture and weights. Both are easy to inspect: the architecture is a text file, while the weights can be dumped with `h5ls`.
 
-Finally, Matt wants to check the performance. Both of the plotting scripts (`make_roc_curves.py` and `make_plots.py`) take an `--nn <arch> <weights>` argument. The NN should work _slightly_ better than the discriminants alone.
+Finally, Matt wants to check the performance. Both of the plotting scripts (`make_roc_curves.py` and `make_hists.py`) take an `--nn <arch> <weights>` argument. The NN should work _slightly_ better than the discriminants alone.
 
 Of course we don't want to stop with slightly better, but to make a better network we'll need more inputs, more layers, and other fancy things which would detract from this example.
 
