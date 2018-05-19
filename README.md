@@ -139,9 +139,14 @@ Of course we don't want to stop with slightly better, but to make a better netwo
 Part 3: Applying in Atlas
 =========================
 
-Like all Canadians, Matt is polite. He wants to share his newfound superpowers with the rest of the collaboration, but he doesn't want to be _rude_ about it. Forcing everyone to install Keras would be most decidedly rude.
+Now that Matt has a trained network, he needs to apply it everywhere. Maybe he just wants to run it over every jet in his analysis selection, or maybe he wants to put it into the derivation framework, or _maybe_ he wants to use it in the high-level trigger. The good news is that _applying_ a trained network is a lot faster than training it, so all these things are feasible.
 
-So Matt needs to put this thing into a C++ framework if he ever wants to show his face in East New Brunswick again. Fortunately, all the hard work is already done: Matt can use [lwtnn][1] to run in his framework, the derivation framework, the high-level trigger, etc.
+But if Matt wants to run his network on a hundred grid sites, tier-0, and in 4 different software frameworks, he's not going to ask everyone to install Keras and Python 3. Matt is polite, you see. He can do whatever he wants on his laptop, but he doesn't want to be "that guy" who adds a 10th circle to the hell that is ATLAS software dependencies. That would be _rude_, and Matt, like any good Canadian, will have none of that.
+
+Saving in lwtnn format
+----------------------
+
+So Matt needs to port his network into a simple C++ tool. We'll use [lwtnn][1], which only depends on a few libraries that ATLAS already uses.
 
 After cloning lwtnn and adding `lwtnn/converters` to his `$PATH` Matt runs
 
@@ -150,19 +155,29 @@ cd model
 kerasfunc2json.py architecture.json weights.h5 variables.json > lwtnn-network.json
 ```
 
-This dumps the full configuration of his trained network into a JSON file. Now he can copy this back to lxplus and verify that things are reproducible there. The tool to apply the NN in C++ lives at
+This dumps the full configuration of his trained network into a JSON file.
+
+Running in ATLAS code
+---------------------
+
+Now he can copy this back to lxplus and verify that it runs in ATLAS-friendly code. A tool to apply the network is implemented in this repository, under
 
 ```
 atlas-sw/dumpxAOD/Root/JetClassifier.cxx
 ```
 
-We can use it to decorate jets by calling
+It's a very simple wrapper over lwtnn. Matt can use it to decorate jets by calling
 
 ```
 ./x86_64-slc6-gcc62-opt/bin/dump-xaod <path-to-xaod> --nn-file lwtnn-network.json
 ```
 
-Finally, Matt gets to do a cutflow! With himself! He downloads the new `output.h5` file to his laptop and runs
+Again, we can use `h5ls -dl outputs.h5` to check the outputs. There should be three new variables, corresponding to the neural network outputs.
+
+Verifying that it works
+-----------------------
+
+Of course we want to verify that lwtnn and Keras are doing exactly the same thing. Finally, Matt gets to do a cutflow! With himself! He downloads the new `output.h5` file to his laptop and runs
 
 ```
 ./validate_nn.py data/output.h5 -n model/architecture.json model/weights.h5
