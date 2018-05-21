@@ -108,7 +108,8 @@ do
     echo "Submitting for ${GRID_NAME} on ${DS} -> ${OUT_DS}"
     prun --exec "dump-xaod $(echo %IN | tr ',' ' ')"\
          --outDS ${OUT_DS} --inDS ${DS}\
-         --outputs output.h5 --inTarBall=${ZIP}\
+         --useAthenaPackages --inTarBall=${ZIP}\
+         --outputs output.h5\
          --noEmail > ${OUT_DS}.log 2>&1
 done
 
