@@ -51,3 +51,6 @@ set(_common
 
 # Build the test executable:
 atlas_add_executable( dump-xaod util/dump-xaod.cxx ${_common} )
+
+# Set up packaging magic (for grid submission)
+atlas_cpack_setup()
