@@ -70,12 +70,24 @@ if ! type dump-xaod &> /dev/null ; then
     exit 1
 fi
 #
+# This is a fun hack. We can't remove an older version of HDF5 from
+# lxplus, so we're stuck linking against it, and thus have to ship it
+# to grid sites that don't have this library. There's an issue here
+# here:
+#
+# https://gitlab.cern.ch/atlas/atlasexternals/issues/2
+#
+# but until this is resolved we're just sticking a copy in the submit
+# area
+rsync -a /usr/lib*/libhdf5.so.6.* libhdf5.so.6
+#
 echo "making tarball of local files: ${ZIP}" >&2
 #
 # The --outTarBall, --noSubmit, and --useAthenaPackages arguments are
 # important. The --outDS and --exec don't matter at all here, they are
 # just placeholders to keep panda from complianing.
 prun --outTarBall=${ZIP} --noSubmit --useAthenaPackages\
+     --extFile=libhdf5.so.6\
      --outDS user.${GRID_NAME}.x --exec "ls"
 
 
