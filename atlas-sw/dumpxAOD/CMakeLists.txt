@@ -52,5 +52,7 @@ set(_common
 # Build the test executable:
 atlas_add_executable( dump-xaod util/dump-xaod.cxx ${_common} )
 
-# Set up packaging magic (for grid submission)
+# Set up grid magic. Atlas uses CPack to package up the local files
+# and submit them to the grid. If you're not looking to run on the
+# grid this is unneeded.
 atlas_cpack_setup()

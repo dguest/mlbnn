@@ -61,6 +61,15 @@ cd ${SUBMIT_DIR}
 # Part 4: build a tarball of the job
 ###########################################
 #
+# Check to make sure you've properly set up the environemnt: if you
+# haven't sourced the setup script in the build directory the grid
+# submission will fail, so we check here before doing any work.
+if ! type dump-xaod &> /dev/null ; then
+    echo "You haven't sourced x86*/setup.sh, job will fail!" >&2
+    echo "quitting..." >&2
+    exit 1
+fi
+#
 echo "making tarball of local files: ${ZIP}" >&2
 #
 # The --outTarBall, --noSubmit, and --useAthenaPackages arguments are
