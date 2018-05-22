@@ -70,16 +70,17 @@ if ! type dump-xaod &> /dev/null ; then
     exit 1
 fi
 #
-# This is a fun hack. We can't remove an older version of HDF5 from
+# SAD HACK Part 1: We can't remove an older version of HDF5 from
 # lxplus, so we're stuck linking against it, and thus have to ship it
 # to grid sites that don't have this library. There's an issue here
 # here:
 #
 # https://gitlab.cern.ch/atlas/atlasexternals/issues/2
 #
-# but until this is resolved we're just sticking a copy in the submit
-# area
+# The other solution is to replicate your datasets to grid sites
+# that are running SLC6, since this seems to be a CentOS 7 issue.
 rsync -a /usr/lib*/libhdf5.so.6.* libhdf5.so.6
+#
 #
 echo "making tarball of local files: ${ZIP}" >&2
 #
@@ -117,8 +118,12 @@ do
     # Now submit. The script we're running expects one argument per
     # input dataset, whereas %IN gives us comma separated files, so we
     # have to run it through `tr`.
+    #
+    # SAD HACK Part 2: since we're hacking in a library by copying it
+    # into the submit directory, we also have to include the working
+    # directory in the LD_LIBRARY_PATH.
     echo "Submitting for ${GRID_NAME} on ${DS} -> ${OUT_DS}"
-    prun --exec "dump-xaod $(echo %IN | tr ',' ' ')"\
+    prun --exec 'LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH dump-xaod $(echo %IN | tr "," " ")'\
          --outDS ${OUT_DS} --inDS ${DS}\
          --useAthenaPackages --inTarBall=${ZIP}\
          --outputs output.h5\
