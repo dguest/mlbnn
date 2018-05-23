@@ -106,7 +106,7 @@ Assuming Matt is on his laptop, he should be able to install everything with
 
 ```
 brew install python3
-pip3 install keras h5py theano matplotlib tensorflow
+pip3 install keras h5py matplotlib tensorflow
 ```
 
 If this takes longer than 30 seconds something is wrong.
