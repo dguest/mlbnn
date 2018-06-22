@@ -51,7 +51,7 @@ TrackWriter::TrackWriter(H5::Group& output_group):
   // with dimensions {N, 20} where N is the number of times that write
   // is called. It can be extended to higher dimensions too, i.e. you
   // could fill a {N, 20, 30} array by passing in {20, 30} here.
-  m_writer = new H5Utils::WriterXd(output_group, "jets", fillers, {20});
+  m_writer = new H5Utils::WriterXd(output_group, "tracks", fillers, {20});
 }
 
 TrackWriter::~TrackWriter() {
