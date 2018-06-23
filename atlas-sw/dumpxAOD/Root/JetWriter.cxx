@@ -8,7 +8,14 @@
 // ATLAS things
 #include "xAODJet/Jet.h"
 
-
+//////////////////////////////////////////////////////////////////////
+// Class constructor
+//////////////////////////////////////////////////////////////////////
+//
+// This is where the "filler" functions are defined, which are
+// responsible for copying variables out of EDM objects and into the
+// output file.
+//
 JetWriter::JetWriter(H5::Group& output_group, bool write_nn):
   m_current_jet(nullptr),
   m_rnnip_pu("rnnip_pu"),
@@ -20,9 +27,9 @@ JetWriter::JetWriter(H5::Group& output_group, bool write_nn):
   m_nn_bottom("nn_bottom"),
   m_writer(nullptr)
 {
-  // define the variable filling functions. Each function takes no
-  // arguments, but includes a pointer to the class instance, and by
-  // extension to the current jet.
+  // Define the variable filling functions. Each function takes no
+  // arguments, but includes a `this` pointer to the object. From the
+  // object pointer the fillers can access the jet.
   H5Utils::VariableFillers fillers;
   fillers.add<float>("rnnip_log_ratio", [this]() {
       double num = this->m_rnnip_pb(*this->m_current_jet->btagging());
@@ -57,6 +64,14 @@ JetWriter::~JetWriter() {
   delete m_writer;
 }
 
+//////////////////////////////////////////////////////////////////////
+// Write function
+//////////////////////////////////////////////////////////////////////
+//
+// This gets called each time we want to write out a jet. This is a
+// simple case: all we have to do is update the pointer to the current
+// jet. The filler functions use this pointer to find the outputs.
+//
 void JetWriter::write(const xAOD::Jet& jet) {
   m_current_jet = &jet;
   m_writer->fillWhileIncrementing();

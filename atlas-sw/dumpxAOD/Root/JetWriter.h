@@ -1,6 +1,17 @@
 #ifndef JET_WRITER_H
 #define JET_WRITER_H
 
+//////////////////////////////////////////////////////////////////////
+// JetWriter class
+//////////////////////////////////////////////////////////////////////
+//
+// This is a minmal example to dump an xAOD::Jet to an HDF5 file. The
+// result is a 1D structured output array, with one entry per jet. For
+// more complicated examples (i.e. sequence outputs) see the
+// `/advanced` directory.
+//
+//////////////////////////////////////////////////////////////////////
+
 // forward declare HDF5 things
 namespace H5 {
   class Group;

@@ -8,34 +8,48 @@
 // ATLAS things
 #include "xAODJet/Jet.h"
 
-
+//////////////////////////////////////////////////////////////////////
+// Class constructor
+//////////////////////////////////////////////////////////////////////
+//
+// This is where the "filler" functions are defined, which are
+// responsible for copying variables out of EDM objects and into the
+// output file.
+//
 TrackWriter::TrackWriter(H5::Group& output_group):
   m_jet(nullptr),
   m_track_idx(1),
   m_ghost_accessor("GhostTrack"),
   m_writer(nullptr)
 {
-  // define the variable filling functions. Each function takes no
-  // arguments, but includes a pointer to the class instance, and by
-  // extension to the track vector.
+  // Define the variable filling functions. Each function takes no
+  // arguments, but includes a `this` pointer to the object. From the
+  // object pointer the fillers can access the tracks.
   H5Utils::VariableFillers fillers;
   fillers.add<float>("pt", [this]() -> float {
-      // look up the track index (this is incremented by the writer)
+
+      // Look up the track index. This is a vector so that we can
+      // support higher-dimensional outputs, but in this case we're
+      // restricted to 1D, and thus only need the first entry.
       size_t idx = this->m_track_idx.at(0);
-      // this is a variable-length sequence. Numpy and HDF5 arrays are
-      // much more efficinet when they are fixed-length, so we fill
-      // out to some fixed index. When this index is out of bounds we
-      // fill with NAN.
+
+      // Tracks are a variable-length sequences. Numpy and HDF5 arrays
+      // are much more efficinet when they are fixed-length, so we
+      // fill out to some fixed index. When this index is out of
+      // bounds we fill with NAN.
       if (this->m_tracks.size() <= idx) return NAN;
+
       // Assuming that we're in bounds, return something (pt here)
       return this->m_tracks.at(idx)->pt();
     });
+
   // We'll add another variable just for fun
   fillers.add<float>("eta", [this]() -> float {
       size_t idx = this->m_track_idx.at(0);
       if (this->m_tracks.size() <= idx) return NAN;
       return this->m_tracks.at(idx)->eta();
     });
+
   // also save the deltaR with respect to the jet
   fillers.add<float>("deltaR", [this]() -> float {
       size_t idx = this->m_track_idx.at(0);
@@ -43,7 +57,7 @@ TrackWriter::TrackWriter(H5::Group& output_group):
       return this->m_tracks.at(idx)->p4().DeltaR(this->m_jet->p4());
     });
 
-  // now we define the writer. Note that the last argument gives the
+  // Now we define the writer. Note that the last argument gives the
   // dimensions of the output array. If the last argument is an empty
   // vector ({}), the output array will be 1d.
   //
@@ -54,11 +68,24 @@ TrackWriter::TrackWriter(H5::Group& output_group):
   m_writer = new H5Utils::WriterXd(output_group, "tracks", fillers, {20});
 }
 
+
 TrackWriter::~TrackWriter() {
   if (m_writer) m_writer->flush();
   delete m_writer;
 }
 
+
+//////////////////////////////////////////////////////////////////////
+// Write function
+//////////////////////////////////////////////////////////////////////
+//
+// This gets called each time we want to write out a jet. In simpler
+// cases all it just updates some pointers in the object, so that the
+// filler functions can find the data to write out.
+//
+// This case is slightly more complicated: we also do some processing
+// and arranging the outputs.
+//
 void TrackWriter::write(const xAOD::Jet& jet) {
   // we clear the track vector first (so we don't forget later!)
   m_tracks.clear();
@@ -94,14 +121,14 @@ void TrackWriter::write(const xAOD::Jet& jet) {
 
   // We might as well sort these tracks by pt. If the sequence we're
   // saving is shorter than the number of tracks they will be
-  // truncated, so this way the tracks we ignore will be the softest
-  // in the jet.
+  // truncated. By sorting by descending pt, tracks we ignore will be
+  // the softest in the jet.
   std::sort(m_tracks.begin(), m_tracks.end(),
             [](const auto* t1, const auto* t2) {
               return t1->pt() > t2->pt();
             });
 
-  // we also have to set the current jet pointer, since some of the
+  // We also have to set the current jet pointer, since some of the
   // outputs depend on the jet kinematics
   m_jet = &jet;
 

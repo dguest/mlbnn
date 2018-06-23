@@ -1,6 +1,16 @@
 #ifndef TRACK_WRITER_H
 #define TRACK_WRITER_H
 
+//////////////////////////////////////////////////////////////////////
+// TrackWriter class
+//////////////////////////////////////////////////////////////////////
+//
+// This is a more complicated example to write out a 2D HDF5
+// dataset. Higher-dimensional cases should be relatively easy to
+// generalize from this example.
+//
+//////////////////////////////////////////////////////////////////////
+
 // forward declare HDF5 things
 namespace H5 {
   class Group;
@@ -38,9 +48,10 @@ public:
   void write(const xAOD::Jet& jet);
 
 private:
-  // the functions that fill the output need to be defined when the
-  // class is initialized. The container they fill from has to exist
-  // when they are defined, so they will fill from this track vector.
+  // The functions that fill the output need to be defined when the
+  // output is initialized. As a result, the container they fill from
+  // also has to exist. In this case we're filling from a track
+  // container, which is defined here.
   std::vector<const xAOD::TrackParticle*> m_tracks;
 
   // we're also going to hold on to the current jet, so that we can
@@ -49,9 +60,12 @@ private:
 
   // In the case where we have sequences, the filler functions need to
   // step through the sequence and pick out individual entries. These
-  // entries are indexed by a counter which the output writer
-  // increments. We define this counter here so that the filler
-  // functions can find it.
+  // functions need an index that points to the current entry. Here we
+  // make this index a member of the class: the filler functions can
+  // then access it via the object `this` pointer.
+  //
+  // This index is a vector to support multi-dimensional outputs. In
+  // this specific case the vector only needs to have one entry.
   std::vector<size_t> m_track_idx;
 
   // accessors for tracks
