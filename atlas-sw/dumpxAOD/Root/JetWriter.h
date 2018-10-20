@@ -47,6 +47,9 @@ public:
   // function that's actually called to write the jet
   void write(const xAOD::Jet& jet);
 
+  // function to get the jet index
+  size_t index() const;
+
 private:
   // the functions that fill the output need to be defined when the
   // class is initialized. They will fill from this jet pointer, which

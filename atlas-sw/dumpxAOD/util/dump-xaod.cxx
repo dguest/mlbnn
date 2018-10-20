@@ -9,6 +9,7 @@
 #include "xAODRootAccess/Init.h"
 #include "xAODRootAccess/TEvent.h"
 #include "xAODRootAccess/tools/ReturnCheck.h"
+#include "HDF5Utils/HdfTuple.h"
 
 // 3rd party includes
 #include "TFile.h"
@@ -60,6 +61,14 @@ int main (int argc, char *argv[])
   H5::H5File output("output.h5", H5F_ACC_TRUNC);
   JetWriter jet_writer(output, bool(opts.nn_file.size() > 0));
 
+  // hack in a jet -> event index
+  size_t start_idx;
+  size_t end_idx;
+  H5Utils::VariableFillers idx_fillers;
+  idx_fillers.add<long long>("start", [&start_idx](){ return start_idx; });
+  idx_fillers.add<long long>("end", [&end_idx](){ return end_idx; });
+  H5Utils::WriterXd event_writer(output, "events", idx_fillers, {});
+
   // Loop over the specified files:
   for (std::string file_name: opts.files) {
 
@@ -91,12 +100,15 @@ int main (int argc, char *argv[])
       const xAOD::JetContainer *jets = 0;
       RETURN_CHECK(ALG, event.retrieve(jets, opts.jet_collection));
 
+      start_idx = jet_writer.index();
       for (const xAOD::Jet *jet : *jets) {
         if (jet->pt() > 20e3 && std::abs(jet->eta()) < 2.5) {
           if (classifier) classifier->decorate(*jet);
           jet_writer.write(*jet);
         }
       }
+      end_idx = jet_writer.index();
+      event_writer.fillWhileIncrementing();
 
     } // end event loop
   } // end file loop

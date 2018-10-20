@@ -76,3 +76,14 @@ void JetWriter::write(const xAOD::Jet& jet) {
   m_current_jet = &jet;
   m_writer->fillWhileIncrementing();
 }
+
+//////////////////////////////////////////////////////////////////////
+// Index Function
+//////////////////////////////////////////////////////////////////////
+//
+// Returns the current writing position in this writer. We want this
+// so we can keep track of the which jets are in which events.
+//
+size_t JetWriter::index() const {
+  return m_writer->size();
+}
