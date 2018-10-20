@@ -39,7 +39,7 @@ Matt wishes that his students had just produced their training dataset directly 
 All the code to dump stuff lives in `atlas-sw`. Again, we want to separate "ATLAS" things from "ML" things. First we'll grab a simulated sample to work with.
 
 ```
-rucio get --nrandom 1 mc16_13TeV.410470.PhPy8EG_A14_ttbar_hdamp258p75_nonallhad.deriv.DAOD_FTAG2.e6337_e5984_s3126_r9781_r9778_p3415/
+rucio get --nrandom 1 <your-favorite-flavor-tagging-derivation>
 ```
 
 Or for the truly lazy
@@ -58,12 +58,13 @@ mkdir build
 cd build
 cmake ../dumpxAOD
 make
+source x86_64-slc6-gcc62-opt/setup.sh
 ```
 
 and then run it with
 
 ```
-./x86_64-slc6-gcc62-opt/bin/dump-xaod <path-to-xaod>
+dump-xaod <path-to-xaod>
 ```
 
 This should produce an output file called `output.h5`. What the hell is that? Well, let's check:

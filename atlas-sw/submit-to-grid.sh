@@ -70,18 +70,6 @@ if ! type dump-xaod &> /dev/null ; then
     exit 1
 fi
 #
-# SAD HACK Part 1: We can't remove an older version of HDF5 from
-# lxplus, so we're stuck linking against it, and thus have to ship it
-# to grid sites that don't have this library. There's an issue here
-# here:
-#
-# https://gitlab.cern.ch/atlas/atlasexternals/issues/2
-#
-# The other solution is to replicate your datasets to grid sites
-# that are running SLC6, since this seems to be a CentOS 7 issue.
-rsync -a /usr/lib*/libhdf5.so.6.* libhdf5.so.6
-#
-#
 echo "making tarball of local files: ${ZIP}" >&2
 #
 # The --outTarBall, --noSubmit, and --useAthenaPackages arguments are
@@ -98,7 +86,7 @@ prun --outTarBall=${ZIP} --noSubmit --useAthenaPackages\
 #
 # Get a list of input datasets
 INPUT_DATASETS=(
-    mc16_13TeV.410470.PhPy8EG_A14_ttbar_hdamp258p75_nonallhad.deriv.DAOD_FTAG2.e6337_e5984_s3126_r9781_r9778_p3415/
+    mc16_13TeV:mc16_13TeV.301324.Pythia8EvtGen_A14NNPDF23LO_zprime750_tt.deriv.DAOD_FTAG5.e4061_s3126_r9364_p3652/
 )
 #
 # Loop over all inputs
@@ -118,12 +106,8 @@ do
     # Now submit. The script we're running expects one argument per
     # input dataset, whereas %IN gives us comma separated files, so we
     # have to run it through `tr`.
-    #
-    # SAD HACK Part 2: since we're hacking in a library by copying it
-    # into the submit directory, we also have to include the working
-    # directory in the LD_LIBRARY_PATH.
     echo "Submitting for ${GRID_NAME} on ${DS} -> ${OUT_DS}"
-    prun --exec 'LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH dump-xaod $(echo %IN | tr "," " ")'\
+    prun --exec 'dump-xaod $(echo %IN | tr "," " ")'\
          --outDS ${OUT_DS} --inDS ${DS}\
          --useAthenaPackages --inTarBall=${ZIP}\
          --outputs output.h5\

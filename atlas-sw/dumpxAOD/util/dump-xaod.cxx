@@ -31,6 +31,7 @@ struct Options
 {
   std::vector<std::string> files;
   std::string nn_file;
+  std::string jet_collection;
 };
 // simple options parser
 Options get_options(int argc, char *argv[]);
@@ -88,7 +89,7 @@ int main (int argc, char *argv[])
       if (!ok) throw std::logic_error("getEntry failed");
 
       const xAOD::JetContainer *jets = 0;
-      RETURN_CHECK(ALG, event.retrieve(jets, "AntiKt4EMTopoJets"));
+      RETURN_CHECK(ALG, event.retrieve(jets, opts.jet_collection));
 
       for (const xAOD::Jet *jet : *jets) {
         if (jet->pt() > 20e3 && std::abs(jet->eta()) < 2.5) {
@@ -107,17 +108,23 @@ int main (int argc, char *argv[])
 
 // define the options parser
 void usage(std::string name) {
-  std::cout << "usage: " << name << " [-h] [--nn-file NN_FILE] <AOD>..."
-            << std::endl;
+  std::cout << "usage: " << name << " [-h]"
+    " [--nn-file NN_FILE]"
+    " [-c JET_COLLECTION]"
+    " <AOD>..." << std::endl;
 }
 
 Options get_options(int argc, char *argv[]) {
   Options opts;
+  opts.jet_collection = "AntiKtVR30Rmax4Rmin02TrackGhostTagJets";
   for (int argn = 1; argn < argc; argn++) {
     std::string arg(argv[argn]);
     if (arg == "--nn-file") {
       argn++;
       opts.nn_file = argv[argn];
+    } else if (arg == "-c") {
+      argn++;
+      opts.jet_collection = argv[argn];
     } else if (arg == "-h") {
       usage(argv[0]);
       exit(1);

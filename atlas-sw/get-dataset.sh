@@ -14,4 +14,4 @@ if ! type rucio; then
     exit 1
 fi
 
-rucio get --nrandom 1 mc16_13TeV.410470.PhPy8EG_A14_ttbar_hdamp258p75_nonallhad.deriv.DAOD_FTAG2.e6337_e5984_s3126_r9781_r9778_p3415/
+rucio get mc16_13TeV:mc16_13TeV.301324.Pythia8EvtGen_A14NNPDF23LO_zprime750_tt.deriv.DAOD_FTAG5.e4061_s3126_r9364_p3652/
