@@ -8,15 +8,14 @@
 #include "xAODJet/Jet.h"
 
 //////////////////////////////////////////////////////////////////////
-// Class constructor
+// Build JetWriter
 //////////////////////////////////////////////////////////////////////
 //
 // This is where the "filler" functions are defined, which are
 // responsible for copying variables out of EDM objects and into the
 // output file.
 //
-JetWriter::JetWriter(H5::Group& output_group, bool write_nn):
-  m_writer(nullptr)
+std::unique_ptr<JetWriter> getWriter(H5::Group& output_group, bool write_nn)
 {
   using xAOD::Jet;
   typedef SG::AuxElement AE;
@@ -56,20 +55,6 @@ JetWriter::JetWriter(H5::Group& output_group, bool write_nn):
                                       return bottom(*j.btagging());
                                     });
   }
+  return std::make_unique<JetWriter>(output_group, "jets", fillers);
 
-  m_writer.reset(new JetWriter_t(output_group, "jets", fillers));
-}
-
-JetWriter::~JetWriter() {
-  if (m_writer) m_writer->flush();
-}
-
-//////////////////////////////////////////////////////////////////////
-// Write function
-//////////////////////////////////////////////////////////////////////
-//
-// This gets called each time we want to write out a jet.
-//
-void JetWriter::write(const xAOD::Jet& jet) {
-  m_writer->fill(jet);
 }

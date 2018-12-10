@@ -58,7 +58,8 @@ int main (int argc, char *argv[])
 
   // set up output file
   H5::H5File output("output.h5", H5F_ACC_TRUNC);
-  JetWriter jet_writer(output, bool(opts.nn_file.size() > 0));
+  // see JetWriter.cxx for more on how the writer is defined
+  auto jet_writer = getWriter(output, bool(opts.nn_file.size() > 0));
 
   // Loop over the specified files:
   for (std::string file_name: opts.files) {
@@ -94,7 +95,7 @@ int main (int argc, char *argv[])
       for (const xAOD::Jet *jet : *jets) {
         if (jet->pt() > 20e3 && std::abs(jet->eta()) < 2.5) {
           if (classifier) classifier->decorate(*jet);
-          jet_writer.write(*jet);
+          jet_writer->fill(*jet);
         }
       }
 
