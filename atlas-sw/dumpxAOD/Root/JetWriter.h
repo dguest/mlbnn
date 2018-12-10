@@ -12,23 +12,10 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-// forward declare HDF5 things
-namespace H5 {
-  class Group;
-}
-namespace H5Utils {
-  class VariableFillers;
-  class WriterXd;
-}
-
-// forward declare EDM things
-namespace xAOD {
-  class Jet_v1;
-  typedef Jet_v1 Jet;
-}
 
 // EDM includes
-#include "AthContainers/AuxElement.h"
+#include "xAODJet/Jet.h"
+#include "HDF5Utils/Writer.h"
 
 class JetWriter
 {
@@ -48,25 +35,10 @@ public:
   void write(const xAOD::Jet& jet);
 
 private:
-  // the functions that fill the output need to be defined when the
-  // class is initialized. They will fill from this jet pointer, which
-  // must be updated each time we wright.
-  const xAOD::Jet* m_current_jet;
-
-  // accessors for jet / b-tagging things
-  typedef SG::AuxElement AE;
-  AE::ConstAccessor<double> m_rnnip_pu;
-  AE::ConstAccessor<double> m_rnnip_pb;
-  AE::ConstAccessor<float> m_jf_sig;
-  AE::ConstAccessor<int> m_flavor_label;
-
-  // If we added NN outputs, these are to write those
-  AE::ConstAccessor<float> m_nn_light;
-  AE::ConstAccessor<float> m_nn_charm;
-  AE::ConstAccessor<float> m_nn_bottom;
 
   // The writer itself
-  H5Utils::WriterXd* m_writer;
+  typedef H5Utils::Writer<0,const xAOD::Jet&> JetWriter_t;
+  std::unique_ptr<JetWriter_t> m_writer;
 };
 
 #endif

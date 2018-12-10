@@ -2,7 +2,6 @@
 #include "JetWriter.h"
 
 // HDF5 things
-#include "HDF5Utils/HdfTuple.h"
 #include "H5Cpp.h"
 
 // ATLAS things
@@ -17,62 +16,60 @@
 // output file.
 //
 JetWriter::JetWriter(H5::Group& output_group, bool write_nn):
-  m_current_jet(nullptr),
-  m_rnnip_pu("rnnip_pu"),
-  m_rnnip_pb("rnnip_pb"),
-  m_jf_sig("JetFitter_significance3d"),
-  m_flavor_label("HadronConeExclExtendedTruthLabelID"),
-  m_nn_light("nn_light"),
-  m_nn_charm("nn_charm"),
-  m_nn_bottom("nn_bottom"),
   m_writer(nullptr)
 {
-  // Define the variable filling functions. Each function takes no
-  // arguments, but includes a `this` pointer to the object. From the
-  // object pointer the fillers can access the jet.
-  H5Utils::VariableFillers fillers;
-  fillers.add<float>("rnnip_log_ratio", [this]() {
-      double num = this->m_rnnip_pb(*this->m_current_jet->btagging());
-      double denom = this->m_rnnip_pu(*this->m_current_jet->btagging());
-      return std::log(num / denom);
-    });
-  fillers.add<float>("jf_sig", [this]() {
-      return this->m_jf_sig(*this->m_current_jet->btagging());
-    });
-  fillers.add<int>("HadronConeExclExtendedTruthLabelID", [this]() {
-      return this->m_flavor_label(*this->m_current_jet);
-    });
+  using xAOD::Jet;
+  typedef SG::AuxElement AE;
+
+  // Define the variable filling functions.
+  H5Utils::Consumers<const Jet&> fillers;
+  AE::ConstAccessor<double> rnn_pu("rnnip_pu");
+  AE::ConstAccessor<double> rnn_pb("rnnip_pb");
+  fillers.add<float>("rnnip_log_ratio",
+                     [rnn_pu, rnn_pb](const Jet& j) {
+                       const xAOD::BTagging* btag = j.btagging();
+                       double num = rnn_pb(*btag);
+                       double denom = rnn_pu(*btag);
+                       return std::log(num / denom);
+                     });
+  AE::ConstAccessor<float> jf_sig("JetFitter_significance3d");
+  fillers.add<float>("jf_sig",
+                     [jf_sig](const Jet& j) {
+                       return jf_sig(*j.btagging());
+                     });
+  std::string label_name = "HadronConeExclExtendedTruthLabelID";
+  AE::ConstAccessor<int> label(label_name);
+  fillers.add<int>(label_name, [label](const Jet& j) { return label(j); });
 
   // if we're running the NN in this loop, we also save it
   if (write_nn) {
-    fillers.add<float>("nn_light", [this](){
-        return this->m_nn_light(*this->m_current_jet->btagging());
-      });
-    fillers.add<float>("nn_charm", [this](){
-        return this->m_nn_charm(*this->m_current_jet->btagging());
-      });
-    fillers.add<float>("nn_bottom", [this](){
-        return this->m_nn_bottom(*this->m_current_jet->btagging());
-      });
+    AE::ConstAccessor<float> light("nn_light");
+    fillers.add<float>("nn_light", [light](const Jet& j){
+                                     return light(*j.btagging());
+                                   });
+    AE::ConstAccessor<float> charm("nn_charm");
+    fillers.add<float>("nn_charm", [charm](const Jet& j){
+                                     return charm(*j.btagging());
+                                   });
+    AE::ConstAccessor<float> bottom("nn_bottom");
+    fillers.add<float>("nn_bottom", [bottom](const Jet& j){
+                                      return bottom(*j.btagging());
+                                    });
   }
 
-  m_writer = new H5Utils::WriterXd(output_group, "jets", fillers, {});
+  m_writer.reset(new JetWriter_t(output_group, "jets", fillers));
 }
 
 JetWriter::~JetWriter() {
   if (m_writer) m_writer->flush();
-  delete m_writer;
 }
 
 //////////////////////////////////////////////////////////////////////
 // Write function
 //////////////////////////////////////////////////////////////////////
 //
-// This gets called each time we want to write out a jet. This is a
-// simple case: all we have to do is update the pointer to the current
-// jet. The filler functions use this pointer to find the outputs.
+// This gets called each time we want to write out a jet.
 //
 void JetWriter::write(const xAOD::Jet& jet) {
-  m_current_jet = &jet;
-  m_writer->fillWhileIncrementing();
+  m_writer->fill(jet);
 }
