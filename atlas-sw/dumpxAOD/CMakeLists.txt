@@ -41,7 +41,6 @@ find_package(lwtnn)
 
 # common requirements
 set(_common
-  Root/JetWriter.cxx
   Root/JetClassifier.cxx
   INCLUDE_DIRS ${ROOT_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} ${LWTNN_INCLUDE_DIRS}
   LINK_LIBRARIES ${ROOT_LIBRARIES} ${HDF5_LIBRARIES} ${LWTNN_LIBRARIES}
