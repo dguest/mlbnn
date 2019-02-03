@@ -95,7 +95,7 @@ int main (int argc, char *argv[])
       for (const xAOD::Jet *jet : *jets) {
         if (jet->pt() > 20e3 && std::abs(jet->eta()) < 2.5) {
           if (classifier) classifier->decorate(*jet);
-          jet_writer->fill(*jet);
+          jet_writer.fill(*jet);
         }
       }
 

@@ -15,7 +15,7 @@
 // responsible for copying variables out of EDM objects and into the
 // output file.
 //
-std::unique_ptr<JetWriter> getWriter(H5::Group& output_group, bool write_nn)
+JetWriter getWriter(H5::Group& output_group, bool write_nn)
 {
   using xAOD::Jet;
   typedef SG::AuxElement AE;
@@ -55,6 +55,6 @@ std::unique_ptr<JetWriter> getWriter(H5::Group& output_group, bool write_nn)
                                       return bottom(*j.btagging());
                                     });
   }
-  return std::make_unique<JetWriter>(output_group, "jets", fillers);
+  return JetWriter(output_group, "jets", fillers);
 
 }

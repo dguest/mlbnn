@@ -19,7 +19,7 @@
 
 // The writer itself
 typedef H5Utils::Writer<0,const xAOD::Jet&> JetWriter;
-std::unique_ptr<JetWriter> getWriter(H5::Group& output_group, bool write_nn);
+JetWriter getWriter(H5::Group& output_group, bool write_nn);
 
 
 #endif
