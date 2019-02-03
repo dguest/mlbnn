@@ -36,23 +36,21 @@ struct Options
 // simple options parser
 Options get_options(int argc, char *argv[]);
 
-//////////////////////////////////////////////////////////////////////
-////////////////////// Writer class setup ////////////////////////////
-//////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+// Setup Consumers
+///////////////////////////////////////////////////////////////////////
 //
-// The first argument for the template is the rank of the output. We
-// could be writing out multi-dimensional arrays here, but for this
-// simple example we'll just save a scalar, i.e. one Jet per entry,
-// although this scalar value can have multiple fields.
+// We define "Consumers" which run on whatever object we want to write
+// (in this case a Jet). Each consumer returns some primative type
+// which is written to the output file.
 //
-// The result is a 1D structured output array, with one entry per jet.
+// See the function definition below.
 //
-// See the "advanced" examples for something more complicated.
+H5Utils::Consumers<const xAOD::Jet&> getConsumers();
 //
-// Put the setup in a function. See below.
-//
-H5Utils::Writer<0,const xAOD::Jet&> getWriter(H5::Group& group, bool write_nn);
-
+// This function adds the nn outputs to the consumer (if we decide to
+// run the NN we just trained).
+void addNN(H5Utils::Consumers<const xAOD::Jet&>&);
 
 //////////////////
 // main routine //
@@ -75,7 +73,26 @@ int main (int argc, char *argv[])
 
   // set up output file
   H5::H5File output("output.h5", H5F_ACC_TRUNC);
-  auto jet_writer = getWriter(output, bool(opts.nn_file.size() > 0));
+
+  // Set up the consumer functions
+  H5Utils::Consumers<const xAOD::Jet&> consumers = getConsumers();
+
+  // If the user passed in an nn, we'll want to add those outputs as
+  // well.
+  if (opts.nn_file.size() > 0) addNN(consumers);
+
+  // The first argument for the template is the rank of the output. We
+  // could be writing out multi-dimensional arrays here, but for this
+  // simple example we'll just save a scalar (rank 0), i.e. one Jet
+  // per entry. This scalar value can have multiple fields, one for
+  // each consumer we define.
+  //
+  // The result is a 1D structured output array, with one entry per
+  // jet.
+  //
+  // See the "advanced" examples for something more complicated.
+  //
+  H5Utils::Writer<0,const xAOD::Jet&> jet_writer(output, "jets", consumers);
 
   // Loop over the specified files:
   for (std::string file_name: opts.files) {
@@ -159,53 +176,60 @@ Options get_options(int argc, char *argv[]) {
 
 
 //////////////////////////////////////////////////////////////////////
-// Build Writer
+// Build Consumers
 //////////////////////////////////////////////////////////////////////
 //
-// This is where the "filler" functions are defined, which are
+// This is where the "consumer" functions are defined, which are
 // responsible for copying variables out of EDM objects and into the
 // output file.
 //
-H5Utils::Writer<0,const xAOD::Jet&> getWriter(H5::Group& group, bool write_nn)
-{
+H5Utils::Consumers<const xAOD::Jet&> getConsumers() {
   using xAOD::Jet;
   typedef SG::AuxElement AE;
 
-  // Define the variable filling functions.
-  H5Utils::Consumers<const Jet&> fillers;
+  // Define the container for the consumers. In this case we're
+  // templated to eat jets.
+  H5Utils::Consumers<const Jet&> consumers;
+
+  // get some accessors for b-tagging variables
   AE::ConstAccessor<double> rnn_pu("rnnip_pu");
   AE::ConstAccessor<double> rnn_pb("rnnip_pb");
-  fillers.add<float>("rnnip_log_ratio",
-                     [rnn_pu, rnn_pb](const Jet& j) {
-                       const xAOD::BTagging* btag = j.btagging();
-                       double num = rnn_pb(*btag);
-                       double denom = rnn_pu(*btag);
-                       return std::log(num / denom);
-                     });
+
+  // Each consumer has a return type (here "float"), a name for the
+  // output variable ("rnnip_log_ratio"), and a function which returns
+  // the desired type.
+  consumers.add<float>("rnnip_log_ratio",
+                       [rnn_pu, rnn_pb](const Jet& j) {
+                         const xAOD::BTagging* btag = j.btagging();
+                         double num = rnn_pb(*btag);
+                         double denom = rnn_pu(*btag);
+                         return std::log(num / denom);
+                       });
   AE::ConstAccessor<float> jf_sig("JetFitter_significance3d");
-  fillers.add<float>("jf_sig",
-                     [jf_sig](const Jet& j) {
-                       return jf_sig(*j.btagging());
-                     });
+  consumers.add<float>("jf_sig",
+                       [jf_sig](const Jet& j) {
+                         return jf_sig(*j.btagging());
+                       });
   std::string label_name = "HadronConeExclExtendedTruthLabelID";
   AE::ConstAccessor<int> label(label_name);
-  fillers.add<int>(label_name, [label](const Jet& j) { return label(j); });
+  consumers.add<int>(label_name, [label](const Jet& j) { return label(j); });
+  return consumers;
+}
 
-  // if we're running the NN in this loop, we also save it
-  if (write_nn) {
-    AE::ConstAccessor<float> light("nn_light");
-    fillers.add<float>("nn_light", [light](const Jet& j){
-                                     return light(*j.btagging());
-                                   });
-    AE::ConstAccessor<float> charm("nn_charm");
-    fillers.add<float>("nn_charm", [charm](const Jet& j){
-                                     return charm(*j.btagging());
-                                   });
-    AE::ConstAccessor<float> bottom("nn_bottom");
-    fillers.add<float>("nn_bottom", [bottom](const Jet& j){
-                                      return bottom(*j.btagging());
-                                    });
-  }
-  return H5Utils::Writer<0,const xAOD::Jet&>(group, "jets", fillers);
+void addNN(H5Utils::Consumers<const xAOD::Jet&>& consumers) {
+  using xAOD::Jet;
+  typedef SG::AuxElement AE;
 
+  AE::ConstAccessor<float> light("nn_light");
+  consumers.add<float>("nn_light", [light](const Jet& j){
+                                   return light(*j.btagging());
+                                 });
+  AE::ConstAccessor<float> charm("nn_charm");
+  consumers.add<float>("nn_charm", [charm](const Jet& j){
+                                   return charm(*j.btagging());
+                                 });
+  AE::ConstAccessor<float> bottom("nn_bottom");
+  consumers.add<float>("nn_bottom", [bottom](const Jet& j){
+                                    return bottom(*j.btagging());
+                                  });
 }
