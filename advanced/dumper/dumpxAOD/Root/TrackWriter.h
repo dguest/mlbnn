@@ -11,32 +11,18 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-// forward declare HDF5 things
-namespace H5 {
-  class Group;
-}
-namespace H5Utils {
-  class VariableFillers;
-  class WriterXd;
-}
-
-// forward declare EDM things
-namespace xAOD {
-  class Jet_v1;
-  typedef Jet_v1 Jet;
-}
-
 // EDM includes
 #include "xAODTracking/TrackParticleContainer.h"
+#include "xAODJet/JetContainer.h"
+#include "HDF5Utils/Writer.h"
+
+#include <memory>
 
 class TrackWriter
 {
 public:
   // constructor: the writer will create the output dataset in some group
   TrackWriter(H5::Group& output_group);
-
-  // destructor (takes care of flushing output file too)
-  ~TrackWriter();
 
   // we want to disable copying and assignment, it's not trivial to
   // make this play well with output files
@@ -48,25 +34,25 @@ public:
   void write(const xAOD::Jet& jet);
 
 private:
-  // The functions that fill the output need to be defined when the
-  // output is initialized. As a result, the container they fill from
-  // also has to exist. In this case we're filling from a track
-  // container, which is defined here.
-  std::vector<const xAOD::TrackParticle*> m_tracks;
 
-  // we're also going to hold on to the current jet, so that we can
-  // calculate things like deltaR.
-  const xAOD::Jet* m_jet;
+  // We want to have pairs of (jet, track) so that we can save
+  // variables describing the relative kinematics.
+  struct JetTrack
+  {
+    const xAOD::Jet* jet;
+    const xAOD::TrackParticle* track;
+  };
 
-  // In the case where we have sequences, the filler functions need to
-  // step through the sequence and pick out individual entries. These
-  // functions need an index that points to the current entry. Here we
-  // make this index a member of the class: the filler functions can
-  // then access it via the object `this` pointer.
+  // The writer template takes two parameters:
   //
-  // This index is a vector to support multi-dimensional outputs. In
-  // this specific case the vector only needs to have one entry.
-  std::vector<size_t> m_track_idx;
+  //  - The first is the rank of the output. In this case we're rank 1
+  //    because we're storing a vector of tracks for each jet.
+  //
+  //  - The second is the input type. Since we want to write out
+  //    information which relates to both the jet and the track we use
+  //    the JetTrack structure defined above.
+  //
+  typedef H5Utils::Writer<1,const JetTrack&> JTWriter;
 
   // accessors for tracks
   typedef SG::AuxElement AE;
@@ -74,7 +60,7 @@ private:
   AE::ConstAccessor<PartLinks> m_ghost_accessor;
 
   // The writer itself
-  H5Utils::WriterXd* m_writer;
+  std::unique_ptr<JTWriter> m_writer;
 };
 
 #endif
