@@ -151,7 +151,7 @@ void usage(std::string name) {
 }
 Options get_options(int argc, char *argv[]) {
   Options opts;
-  opts.jet_collection = "AntiKtVR30Rmax4Rmin02TrackGhostTagJets";
+  opts.jet_collection = "AntiKtVR30Rmax4Rmin02TrackJets";
   for (int argn = 1; argn < argc; argn++) {
     std::string arg(argv[argn]);
     if (arg == "--nn-file") {
