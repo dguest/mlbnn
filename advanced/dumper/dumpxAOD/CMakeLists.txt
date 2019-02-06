@@ -42,15 +42,17 @@ find_package(lwtnn)
 
 # common requirements
 set(_common
-  Root/TrackWriter.cxx
   INCLUDE_DIRS ${ROOT_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} ${LWTNN_INCLUDE_DIRS}
   LINK_LIBRARIES ${ROOT_LIBRARIES} ${HDF5_LIBRARIES} ${LWTNN_LIBRARIES}
   xAODRootAccess
-  xAODTracking
+  xAODTracking xAODJet
   HDF5Utils)
 
 # Build the test executable:
-atlas_add_executable( dump-tracks util/dump-tracks.cxx ${_common} )
+atlas_add_executable( dump-tracks
+  util/dump-tracks.cxx Root/TrackWriter.cxx
+  ${_common} )
+atlas_add_executable( dump-events util/dump-events.cxx ${_common} )
 
 # Set up grid magic. Atlas uses CPack to package up the local files
 # and submit them to the grid. If you're not looking to run on the
