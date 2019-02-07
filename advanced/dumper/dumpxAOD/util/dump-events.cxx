@@ -66,6 +66,7 @@ int main (int argc, char *argv[])
   jcon.add<float>("pt",  [](const Jet& j) { return j.pt();  });
   jcon.add<float>("eta", [](const Jet& j) { return j.eta(); });
   jcon.add<float>("phi", [](const Jet& j) { return j.phi(); });
+  jcon.add<float>("m"  , [](const Jet& j) { return j.m(); });
   H5Utils::Writer<0, const Jet&> jwriter(output, "jet", jcon);
 
   // Loop over the specified files:
