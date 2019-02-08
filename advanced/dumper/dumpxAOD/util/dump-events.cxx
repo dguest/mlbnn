@@ -63,10 +63,22 @@ int main (int argc, char *argv[])
   // add jet consumers
   using xAOD::Jet;
   H5Utils::Consumers<const Jet&> jcon;
-  jcon.add<float>("pt",  [](const Jet& j) { return j.pt();  });
-  jcon.add<float>("eta", [](const Jet& j) { return j.eta(); });
-  jcon.add<float>("phi", [](const Jet& j) { return j.phi(); });
-  jcon.add<float>("m"  , [](const Jet& j) { return j.m(); });
+  jcon.add<float>("pt"  , [](const Jet& j) { return j.pt();  });
+  jcon.add<float>("eta" , [](const Jet& j) { return j.eta(); });
+  jcon.add<float>("phi" , [](const Jet& j) { return j.phi(); });
+  jcon.add<float>("m"   , [](const Jet& j) { return j.m(); });
+
+  // let's also add some b-tagging info
+  typedef SG::AuxElement AE;
+  AE::ConstAccessor<double> pb("DL1_pb");
+  AE::ConstAccessor<double> pc("DL1_pc");
+  AE::ConstAccessor<double> pu("DL1_pu");
+  jcon.add<float>("btag", [pb, pc, pu](const Jet& j) {
+                            const xAOD::BTagging* bp = j.btagging();
+                            if (!bp) throw std::runtime_error("missing b");
+                            const xAOD::BTagging& b = *bp;
+                            return pb(b) / (pc(b)*0.1 + pu(b)*0.9);
+                          });
   H5Utils::Writer<0, const Jet&> jwriter(output, "jet", jcon);
 
   // Loop over the specified files:
