@@ -24,23 +24,49 @@ def jetstring(jet, btag):
 
 def run():
     args = get_args()
+
+    # read all the required information from a file
     with File(args.input_file, 'r') as input_file:
+
+        # this is a slight optimization: read all the variables from
+        # the hdf5 file and into numpy at once. This avoids doing
+        # multiple reads from the file.
         kin_vars = ['pt','eta','phi','m']
-        # this is a slight optimization, read all the variables from
-        # the hdf5 file and into numpy at once
         jets = input_file['jet'][tuple(kin_vars) + ('btag',)]
+
+        # now we split the jets into components and build a vector
+        # array. This seems a bit clunky.
+        #
+        # See https://github.com/scikit-hep/uproot-methods/issues/41
         pt, eta, phi, m = [jets[x] for x in kin_vars]
         flat = TLorentzVector.TLorentzVectorArray.from_ptetaphim(
             pt, eta, phi, m)
+
+        # we can add arbitrary information to the vector array
         flat['btag'] = jets['btag']
+
+        # finally we need to read out the indices corresponding to the
+        # event bountries
         counts = input_file['event']['nJets']
+
+    # Now print out all the jets. The zip here is a bit of a hack
+    # because iterations don't return an object with the assocaited
+    # table.
+    #
+    # See https://github.com/scikit-hep/uproot-methods/issues/40
+    #
     for tlv, btag in zip(flat, flat.content['btag']):
         print(jetstring(tlv, btag))
 
+    # define a mixin class that combines JaggedArray with
+    # LorentzVector arrays
     JaggedTLorentzVectorArray = awkward.Methods.mixin(
         TLorentzVector.ArrayMethods, awkward.JaggedArray)
 
+    # finally build the array
     jagged = JaggedTLorentzVectorArray.fromcounts(counts, flat)
+
+    # and loop over by event number
     for evtnum, event in enumerate(jagged):
         print(f'event number {evtnum}')
         for jet, btag in zip(event, event.content['btag']):
