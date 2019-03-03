@@ -54,6 +54,10 @@ atlas_add_executable( dump-tracks
   ${_common} )
 atlas_add_executable( dump-events util/dump-events.cxx ${_common} )
 
+# This is a very dumb dumper just to demonstrate simple xAOD access
+atlas_add_executable( dump-minimal util/dump-minimal.cxx
+  LINK_LIBRARIES xAODJet xAODRootAccess)
+
 # Set up grid magic. Atlas uses CPack to package up the local files
 # and submit them to the grid. If you're not looking to run on the
 # grid this is unneeded.

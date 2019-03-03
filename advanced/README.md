@@ -12,6 +12,7 @@ Advanced dumper utils
 Under `dumper` there are some more sophisticated tools to create
 datasets.
 
+ - `dump-minimal.cxx` is the absolute minimal example to read an xAOD.
  - `dump-tracks.cxx` is an example that writes out a 2d array of
    tracks, one row per jet.
  - `dump-events.cxx` is an example that writes events using variable
