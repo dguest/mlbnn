@@ -1,0 +1,5 @@
+awkward >= 0.8.4
+h5py >= 2.8.0
+Keras >= 2.2.4
+matplotlib >= 3.0.2
+uproot-methods >= 0.4.2
