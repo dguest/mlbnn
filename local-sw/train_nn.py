@@ -31,18 +31,25 @@ def run():
     # get the jets out of the input file.
     with h5py.File(args.input_file, 'r') as infile:
         jets = np.asarray(infile['jets'])
+        tracks = np.asarray(infile['tracks'])
 
     # first, let's make the training dataset!
-    input_data = preproc_inputs(jets)
+    input_data = preproc_inputs(jets, tracks)
     targets = make_targets(jets)
 
     # now make the network
-    from keras.layers import Input, Dense, Softmax
+    from keras.layers import Input, TimeDistributed, Dense, Softmax, Masking
+    from SumLayer import SumLayer
     from keras.models import Model
 
-    input_node = Input(shape=(2,))
-    dense = Dense(3)(input_node)
-    pred = Softmax()(dense)
+    input_node = Input(shape=input_data.shape[1:])
+    masked = Masking(mask_value=0.0)(input_node)
+    tdd = TimeDistributed(Dense(5))(masked)
+    tdd2 = TimeDistributed(Dense(5))(tdd)
+    summed = SumLayer()(tdd2)
+    dense = Dense(20)(summed)
+    dense2 = Dense(3)(dense)
+    pred = Softmax()(dense2)
     model = Model(inputs=input_node, outputs=pred)
     model.compile(optimizer='rmsprop',
                   loss='categorical_crossentropy',
@@ -108,23 +115,22 @@ RNN_OFFSET = 3.0
 RNN_SCALE = 0.25
 RNN_DEFAULT = -9
 
-def preproc_inputs(jets):
+def preproc_inputs(jets, tracks):
     """
     We make some hardcoded transformations to normalize these inputs
     """
 
     # The jf_sig variable has a long tail. To "normalize" this a bit
     # we take the log(x + 1) transformation.
-    jf = (np.log1p(jets['jf_sig']) + JF_OFFSET ) * JF_SCALE
+    d0sig = tracks['IP3D_signed_d0_significance']
+    dr = tracks['dr']
+    ptfrac = tracks['ptfrac']
 
     # the rnnip ratio has the weird feature that the outputs are
     # sometimes NAN (because the algorithm returns zeros for all
     # classes when no tracks are found). We have to replace these nan
     # values with some other default
-    rnnip = jets['rnnip_log_ratio']
-    rnnip[np.isnan(rnnip)] = RNN_DEFAULT
-    rnnip = (rnnip + RNN_OFFSET) * RNN_SCALE
-    return np.stack([jf, rnnip], axis=1)
+    return np.nan_to_num(np.stack([d0sig, dr, ptfrac], axis=2))
 
 def get_variables_json():
     """
