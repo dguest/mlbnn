@@ -17,8 +17,9 @@ own
     def build(self, input_shape):
         pass
 
-    def call(self, x, mask=None):
-        return K.sum(x, axis=1)
+    def call(self, x, mask):
+        masked = x * K.cast(mask, K.dtype(x))[:,:,None]
+        return K.sum(masked, axis=1)
 
     def compute_output_shape(self, input_shape):
         return input_shape[0], input_shape[2]

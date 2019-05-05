@@ -5,6 +5,7 @@ Simple script to train a neural network with keras
 """
 
 import argparse
+from itertools import product
 import numpy as np
 from matplotlib import pyplot as plt
 import h5py
@@ -34,29 +35,36 @@ def run():
         tracks = np.asarray(infile['tracks'])
 
     # first, let's make the training dataset!
-    input_data = preproc_inputs(jets, tracks)
+    mask_value = 999
+    jet_inputs, track_inputs = preproc_inputs(jets, tracks, mask_value)
     targets = make_targets(jets)
 
     # now make the network
     from keras.layers import Input, TimeDistributed, Dense, Softmax, Masking
+    from keras.layers import Concatenate
     from SumLayer import SumLayer
     from keras.models import Model
 
-    input_node = Input(shape=input_data.shape[1:])
-    masked = Masking(mask_value=0.0)(input_node)
-    tdd = TimeDistributed(Dense(5))(masked)
-    tdd2 = TimeDistributed(Dense(5))(tdd)
-    summed = SumLayer()(tdd2)
-    dense = Dense(20)(summed)
-    dense2 = Dense(3)(dense)
+    track_node = Input(shape=track_inputs.shape[1:])
+    tdd = Masking(mask_value=mask_value)(track_node)
+    for x in range(2):
+        tdd = TimeDistributed(Dense(20))(tdd)
+    track_sum = SumLayer()(tdd)
+
+    jet_node = Input(shape=jet_inputs.shape[1:])
+    merged = Concatenate()([jet_node, track_sum])
+    for x in range(2):
+        merged = Dense(20)(merged)
+
+    dense2 = Dense(3)(merged)
     pred = Softmax()(dense2)
-    model = Model(inputs=input_node, outputs=pred)
-    model.compile(optimizer='rmsprop',
+    model = Model(inputs=[jet_node, track_node], outputs=pred)
+    model.compile(optimizer='adam',
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
     # now fit this thing!
-    model.fit(input_data, targets, epochs=args.epochs)
+    model.fit([jet_inputs, track_inputs], targets, epochs=args.epochs)
 
     # finally, save the trained network
     odir = args.output_dir
@@ -106,31 +114,32 @@ def get_discrim(jets, model_path, weights_path):
 # Preprocessing and saving the configuration
 ####################################################################
 #
-# These constants are used to normalize the NN inputs. We typically
-# want inputs that are around zero with standard deviations around 1,
-# but this doesn't need to be exact.
-JF_OFFSET = -0.7
-JF_SCALE = 0.75
-RNN_OFFSET = 3.0
-RNN_SCALE = 0.25
-RNN_DEFAULT = -9
 
-def preproc_inputs(jets, tracks):
+def track_vars():
+    ip = [
+        f'IP3D_signed_{x}0{y}' for x, y in product('dz',['','_significance'])]
+    return ip + ['dr','ptfrac']
+
+def jet_vars():
+    ip = [f'IP{x}D_p{y}' for x, y in product([2,3],'bcu')]
+    jf = [
+        f'JetFitter_{x}' for x in ['significance3d', 'mass','energyFraction']]
+    return ip + jf
+
+def preproc_inputs(jets, tracks, mask_value):
     """
     We make some hardcoded transformations to normalize these inputs
     """
 
-    # The jf_sig variable has a long tail. To "normalize" this a bit
-    # we take the log(x + 1) transformation.
-    d0sig = tracks['IP3D_signed_d0_significance']
-    dr = tracks['dr']
     ptfrac = tracks['ptfrac']
+    invalid = np.isnan(tracks['ptfrac'])
+    track_array = np.stack([tracks[x] for x in track_vars()], axis=2)
+    track_array[invalid,:] = mask_value
 
-    # the rnnip ratio has the weird feature that the outputs are
-    # sometimes NAN (because the algorithm returns zeros for all
-    # classes when no tracks are found). We have to replace these nan
-    # values with some other default
-    return np.nan_to_num(np.stack([d0sig, dr, ptfrac], axis=2))
+    jn = {'JetFitter_mass': 0.001}
+    rja = np.stack([jets[x]*jn.get(x,1) for x in jet_vars()], axis=1)
+    jet_array = np.nan_to_num(rja)
+    return jet_array, track_array
 
 def get_variables_json():
     """
@@ -148,14 +157,14 @@ def get_variables_json():
             # have to make the log1p transformation in the C++ code to
             # build this variable.
             'name': 'jf_sig_log1p',
-            'offset': JF_OFFSET,
-            'scale': JF_SCALE,
+            # 'offset': JF_OFFSET,
+            # 'scale': JF_SCALE,
         },
         {
             'name': 'rnnip_log_ratio',
-            'offset': RNN_OFFSET,
-            'scale': RNN_SCALE,
-            'default': RNN_DEFAULT,
+            # 'offset': RNN_OFFSET,
+            # 'scale': RNN_SCALE,
+            # 'default': RNN_DEFAULT,
         }
     ]
 
